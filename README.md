@@ -18,7 +18,7 @@ ESLint / Prettier / prettier-plugin-tailwindcss を組み込み、Cursor（VS Co
 ```bash
 npx create-next-app@latest my-app --example "https://github.com/shota-koura/next-starter"
 cd my-app
-````
+```
 
 ## Recommended first run (before development)
 
@@ -31,23 +31,23 @@ npm run check
 npm run dev
 ```
 
-* `format`: Prettier 実行（Tailwind class 並び替えもここで適用）
-* `check`: `format:check` + `lint`（テンプレ側の scripts に依存）
-* `dev`: 開発サーバ起動（[http://localhost:3000）](http://localhost:3000）)
+- `format`: Prettier 実行（Tailwind class 並び替えもここで適用）
+- `check`: `format:check` + `lint`（テンプレ側の scripts に依存）
+- `dev`: 開発サーバ起動（[http://localhost:3000）](http://localhost:3000）)
 
 ## Cursor / VS Code behavior
 
 このテンプレは `.vscode/settings.json` を含みます。
 
-* 保存時に Prettier で整形されます
-* 保存時に ESLint の autofix が可能な範囲で自動修正されます
-* Tailwind class の順序は Prettier により自動で整えられます
+- 保存時に Prettier で整形されます
+- 保存時に ESLint の autofix が可能な範囲で自動修正されます
+- Tailwind class の順序は Prettier により自動で整えられます
 
 必要な拡張機能（推奨）
 
-* ESLint
-* Prettier - Code formatter
-* Tailwind CSS IntelliSense
+- ESLint
+- Prettier - Code formatter
+- Tailwind CSS IntelliSense
 
 ## Verify Tailwind class sorting
 
@@ -73,6 +73,6 @@ npm run check         # format:check + lint
 
 ## Notes
 
-* `create-next-app --example` は新規作成時にテンプレをコピーするだけです。
+- `create-next-app --example` は新規作成時にテンプレをコピーするだけです。
   既存プロジェクトへ自動追従はしません（必要なら設定ファイルを適用してください）。
-* Prettier の対象外にしたいファイルがある場合は `.prettierignore` を編集してください。
+- Prettier の対象外にしたいファイルがある場合は `.prettierignore` を編集してください。
