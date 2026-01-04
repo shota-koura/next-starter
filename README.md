@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# next-starter
 
-## Getting Started
+Next.js + TypeScript + Tailwind CSS の開発用スターターです。  
+ESLint / Prettier / prettier-plugin-tailwindcss を組み込み、Cursor（VS Code互換）で保存時に自動整形・自動修正が効く状態を標準化しています。
 
-First, run the development server:
+## Features
+
+- Next.js (App Router) + TypeScript
+- ESLint (Next.js core-web-vitals + TypeScript)
+- Prettier（保存時フォーマット）
+- prettier-plugin-tailwindcss（Tailwind class の自動並び替え）
+- Cursor / VS Code 向けのワークスペース設定（`.vscode/settings.json`）
+
+## Create a new project from this template
+
+このリポジトリを `create-next-app --example` で雛形として新規プロジェクトを作成します。
 
 ```bash
+npx create-next-app@latest my-app --example "https://github.com/shota-koura/next-starter"
+cd my-app
+````
+
+## Recommended first run (before development)
+
+依存インストールとフォーマットを一度通し、以降の開発でズレが出ない状態にします。
+
+```bash
+npm install
+npm run format
+npm run check
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+* `format`: Prettier 実行（Tailwind class 並び替えもここで適用）
+* `check`: `format:check` + `lint`（テンプレ側の scripts に依存）
+* `dev`: 開発サーバ起動（[http://localhost:3000）](http://localhost:3000）)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Cursor / VS Code behavior
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+このテンプレは `.vscode/settings.json` を含みます。
 
-## Learn More
+* 保存時に Prettier で整形されます
+* 保存時に ESLint の autofix が可能な範囲で自動修正されます
+* Tailwind class の順序は Prettier により自動で整えられます
 
-To learn more about Next.js, take a look at the following resources:
+必要な拡張機能（推奨）
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+* ESLint
+* Prettier - Code formatter
+* Tailwind CSS IntelliSense
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Verify Tailwind class sorting
 
-## Deploy on Vercel
+`app/page.tsx` の `className="..."` の順序を崩してから、次を実行してください。
+class の順序が自動的に整えば有効です。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npx prettier --write app/page.tsx
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Scripts
+
+主要コマンド（詳細は package.json を参照）
+
+```bash
+npm run dev           # start dev server
+npm run lint          # run eslint
+npm run lint:fix      # eslint --fix
+npm run format        # prettier --write .
+npm run format:check  # prettier --check .
+npm run check         # format:check + lint
+```
+
+## Notes
+
+* `create-next-app --example` は新規作成時にテンプレをコピーするだけです。
+  既存プロジェクトへ自動追従はしません（必要なら設定ファイルを適用してください）。
+* Prettier の対象外にしたいファイルがある場合は `.prettierignore` を編集してください。
