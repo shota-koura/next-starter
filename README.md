@@ -18,7 +18,6 @@ ESLint / Prettier / prettier-plugin-tailwindcss を組み込み、Cursor（VS Co
 ```bash
 npx create-next-app@latest my-app --example "https://github.com/shota-koura/next-starter"
 cd my-app
-　
 ```
 
 ## Recommended first run (before development)
