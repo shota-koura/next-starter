@@ -76,4 +76,4 @@ npm run check         # format:check + lint
 - `create-next-app --example` は新規作成時にテンプレをコピーするだけです。
   既存プロジェクトへ自動追従はしません（必要なら設定ファイルを適用してください）。
 - Prettier の対象外にしたいファイルがある場合は `.prettierignore` を編集してください。
-Test for Actions
+  Test for Actions
