@@ -1,3 +1,6 @@
+以下は `next-starter` 向けに「毎回スムーズに再現できる」ことに寄せた README 例です（そのまま貼り替え可）。
+
+````md
 # next-starter
 
 Next.js + TypeScript + Tailwind CSS の開発用スターターです。  
@@ -19,6 +22,7 @@ ESLint / Prettier / prettier-plugin-tailwindcss を組み込み、Cursor（VS Co
 npx create-next-app@latest my-app --example "https://github.com/shota-koura/next-starter"
 cd my-app
 ```
+````
 
 ## Recommended first run (before development)
 
@@ -76,4 +80,9 @@ npm run check         # format:check + lint
 - `create-next-app --example` は新規作成時にテンプレをコピーするだけです。
   既存プロジェクトへ自動追従はしません（必要なら設定ファイルを適用してください）。
 - Prettier の対象外にしたいファイルがある場合は `.prettierignore` を編集してください。
-  Test for Actions
+
+```
+
+
+
+```
