@@ -11,5 +11,17 @@ export default defineConfig([
   prettier,
 
   // Ignore
-  globalIgnores(['.next/**', 'out/**', 'build/**', 'next-env.d.ts']),
+  globalIgnores([
+    '.next/**',
+    'out/**',
+    'build/**',
+    'next-env.d.ts',
+
+    '**/node_modules/**',
+    '**/.venv/**',
+    '**/__pycache__/**',
+    '**/.ruff_cache/**',
+    '**/.pytest_cache/**',
+    '**/.mypy_cache/**',
+  ]),
 ]);

@@ -3,3 +3,9 @@ node_modules
 out
 build
 .specstory
+
+**/.venv
+**/__pycache__
+**/.ruff_cache
+**/.pytest_cache
+**/.mypy_cache

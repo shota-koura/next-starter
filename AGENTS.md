@@ -1,3 +1,8 @@
+---
+
+## AGENTS.md（全文・貼り替え用）
+
+```md
 # AGENTS.md
 
 ## 言語
@@ -20,21 +25,38 @@
 
 ## 検証レベル（速い検証 / フル検証）
 
-- 速い検証（開発ループ中）:
-  - Run: `npm run format:check`
-  - Then run: `npm run lint`
-- フル検証（CI 相当 / PR 前 / タスク完了前）:
-  - Run: `npm run fix`
-  - Then run: `npm run check`
+- 速い検証（開発ループ中）
+  - Frontend:
+    - `npm run format:check`
+    - `npm run lint`
+  - Backend（Python を触った場合）
+    - `cd backend && source .venv/bin/activate && ruff format --check .`
+    - `cd backend && source .venv/bin/activate && ruff check .`
+
+- フル検証（CI 相当 / PR 前 / タスク完了前）
+  - Frontend:
+    - `npm run fix`
+    - `npm run check`
+  - Backend（Python を触った場合）
+    - `cd backend && source .venv/bin/activate && ruff check --fix .`
+    - `cd backend && source .venv/bin/activate && ruff format .`
+    - `cd backend && source .venv/bin/activate && pyright`
+    - `cd backend && source .venv/bin/activate && python -m pytest`
 
 ## 完了条件（タスク / PR 共通）
 
 - タスクを「完了」とする、または PR を提案する前に必ず実行:
-  - `npm run fix`
-  - `npm run check`
-- `npm run check` が失敗した場合:
+  - Frontend: `npm run fix` と `npm run check`
+  - Backend を変更した場合は Backend のフル検証も通す
+- `npm run check` または Backend のチェックが失敗した場合:
   - 問題を修正し、成功するまで再実行する。
-- 開発中は反復速度を優先し、「速い検証」を多用してよい。
+- Codex CLI はエディタの保存時整形を使わないため、CLIチェックの通過を完了条件として重視する。
+
+## commit 時の自動修正（Husky + lint-staged）
+
+- `.husky/pre-commit` で `npx lint-staged` が実行される。
+- ステージ済みファイルに対して自動修正が走る（JS/TS: Prettier/ESLint、Python: Ruff）。
+- 自動修正で差分が追加される場合があるため、commit が止まったら `git status` を確認し、必要なら `git add` を行ってから再度 commit する。
 
 ## 事前確認が必要な変更（勝手に進めない）
 
@@ -52,28 +74,34 @@
 - 差分は最小にする:
   - タスクに必要なファイルのみを編集する。
   - 明示的な必要がない限り、repo 全体の整形はしない。
-- `npm run fix` によって大量の変更が出た場合:
+- `npm run fix` や `ruff check --fix` によって大量の変更が出た場合:
   - PR 内で理由を説明する、または
   - 整形のみの PR と機能変更 PR を分ける。
 
 ## フォーマット
 
-- フォーマットは Prettier が正とする。
+- Frontend のフォーマットは Prettier が正とする。
 - Tailwind の class 並び替えは `prettier-plugin-tailwindcss` が正とする。
+- Backend のフォーマットは Ruff が正とする。
 - 手で整形しない:
-  - フル自動修正は `npm run fix` を使う。
-  - Prettier 適用は `npm run format` を使う。
+  - Frontend: `npm run format` / `npm run fix`
+  - Backend: `ruff format` / `ruff check --fix`
 
-## Lint
+## Lint / Type check
 
-- lint ルールは ESLint が正。
-- `npm run lint:fix` は原則 `npm run fix` 経由でのみ実行（または明示依頼がある場合のみ）。
+- Frontend:
+  - lint ルールは ESLint が正。
+  - `npm run lint:fix` は原則 `npm run fix` 経由でのみ実行（または明示依頼がある場合のみ）。
+- Backend:
+  - lint と自動修正は Ruff が正。
+  - 型チェックは Pyright が正。
+  - テストは pytest が正。
 
 ## PR 提案時の出力（レビュー用）
 
 - PR を提案するときに必ず含める:
   - 変更概要
-  - 実行したコマンドと結果（最低限 `npm run check`）
+  - 実行したコマンドと結果（最低限 `npm run check`、Python を触ったなら `pyright` と `python -m pytest`）
   - 大きな整形差分が出た場合の理由
   - UI 変更がある場合はスクリーンショット（可能なら）
   - 挙動変更がある場合はリスクとロールバック方針
@@ -85,9 +113,10 @@
 - `app/` は Next.js App Router の routes と共通 UI（例: `app/page.tsx`, `app/layout.tsx`）。
 - `app/globals.css` は global styles と Tailwind directives。
 - `public/` は静的アセット。
+- `backend/` は Python バックエンド（FastAPI + Ruff + Pyright + pytest）。
 - 主要設定ファイル: `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`, `postcss.config.mjs`。
 
-## ビルド / 開発 / 検証コマンド
+## ビルド / 開発 / 検証コマンド（Frontend）
 
 - `npm install` 依存をインストール。
 - `npm run dev` ローカル開発（`http://localhost:3000`）。
@@ -100,10 +129,23 @@
 - `npm run check` `format:check` + `lint` + `build`（CI 相当）。
 - `npm run fix` format + lint の自動修正。
 
+## ビルド / 開発 / 検証コマンド（Backend）
+
+- venv を有効化してから実行する:
+  - `cd backend && source .venv/bin/activate`
+- 主要コマンド:
+  - `ruff check .`
+  - `ruff check --fix .`
+  - `ruff format .`
+  - `ruff format --check .`
+  - `pyright`
+  - `python -m pytest`
+  - `uvicorn app:app --reload --port 8000`
+
 ## コーディング規約 / 命名
 
 - TypeScript + React。コンポーネントや route は `tsx` を優先。
-- 整形は Prettier に任せ、手での揃えを避ける。
+- 整形はツールに任せ、手での揃えを避ける。
 - Tailwind class の順序は `prettier-plugin-tailwindcss` が正。
 - 命名:
   - React component は PascalCase（例: `HeroBanner`）
@@ -112,12 +154,11 @@
 
 ## テスト方針
 
-- 現時点では test runner 未導入。
-- push 前に `npm run check` で build と lint を必ず通す。
-- テストを追加する場合:
-  - 配置は `tests/` または `__tests__/`
-  - 命名は `*.test.tsx` または `*.spec.tsx`
-  - 新しい test runner や重いツール導入は事前確認する。
+- Frontend:
+  - test runner は必要に応じて導入する（導入時は事前確認）。
+- Backend:
+  - pytest を使用。
+  - import 解決を安定させるため、基本は `backend/` を root として `python -m pytest` を実行する。
 
 ## commit / PR の方針
 
@@ -135,6 +176,7 @@
 - secrets は `.env.local` に置き、コミットしない。
 - `.prettierignore` で生成物や不要なディレクトリを除外（例: `.next`, `node_modules`, `.specstory`）。
 - Tailwind 並びが怪しい場合は `npx prettier --write app/page.tsx` で確認してよい。
+- Python の `.venv` は `backend/.venv` を使用し、コミットしない。
 
 # `@codex review` 用のレビュー観点
 
@@ -161,7 +203,7 @@
 - 観点を絞る: `@codex review for <focus>`
 - 指摘は P0/P1 を優先して出す。
 
-# GitHub Actions / Ruleset を新規リポジトリで有効化する手順（スクショ無しでも迷わない手順）
+# GitHub Actions / Ruleset を新規リポジトリで有効化する手順
 
 ## 0. 前提
 
@@ -174,12 +216,7 @@
 2. `Settings` を開く
 3. 左メニュー `Actions` -> `General` を開く
 4. `Actions permissions` を設定する
-   - CI を動かす目的なら、利用する action がブロックされない設定にする
-   - "Allow actions and reusable workflows from only in your organization" を選ぶ場合は、
-     `actions/checkout` などが使えない可能性があるため注意する
 5. `Workflow permissions` を設定する
-   - 通常の CI だけなら `Read` を基本にする
-   - `GITHUB_TOKEN` で書き込みが必要な場合のみ `Read and write` を検討する
 6. 必要な場合のみ `Allow GitHub Actions to create and approve pull requests` を有効化する
 7. `Save` を押す
 8. `.github/workflows/*.yml` をデフォルトブランチへ追加し、`Actions` タブで workflow が実行されることを確認する
@@ -189,29 +226,21 @@
 1. GitHub 上で対象リポジトリを開く
 2. `Settings` を開く
 3. `Rules` -> `Rulesets` を開く
-4. `New ruleset` を押す
-5. `New branch ruleset` を選ぶ
-6. `Ruleset name` を入力（例: `main protection`）
-7. enforcement status を設定する
-   - まず検証したい場合は Evaluate（利用可能な場合）
-   - 即時適用するなら Active
-8. `Target branches` で対象ブランチを設定する
-   - デフォルトブランチ（例: `main`）を含める
-   - 必要なら `release/*` なども追加する
-9. `Branch protections` を設定する（推奨の最小セット）
-   - Require a pull request before merging
-   - Require approvals（例: 1）
-   - Require status checks before merging
-   - Block force pushes
-   - (任意) Require conversation resolution
-10. `Require status checks before merging` の Additional settings を設定する
-
-- 必須にしたい check 名を追加する（CI の job 名を安定させる）
-
-11. 必要に応じて `Bypass list` を最小限に設定する（例: admins のみ）
-12. `Create` を押す
+4. `New ruleset` -> `New branch ruleset` を選ぶ
+5. `Ruleset name` を入力（例: `main protection`）
+6. enforcement status を設定する（例: `Active`）
+7. `Target branches` で対象ブランチを設定する（例: default branch）
+8. ルール（推奨の最小セット）
+   - `Require a pull request before merging`
+   - `Require status checks to pass`
+   - `Block force pushes`
+   - （任意）`Require conversation resolution before merging`
+9. `Require status checks to pass` の `Add checks` で必須チェック名を追加（例: `verify`）
+10. 必要に応じて `Bypass list` を最小限に設定（例: admins のみ）
+11. `Create` を押す
 
 ## 3. 運用の注意（Actions と Ruleset の噛み合わせ）
 
-- `Require status checks before merging` を有効にすると、必須チェックがすべて通るまでマージできない。
-- workflow の check 名が変わると Ruleset 側の必須チェック名と不整合になりやすいので、CI の job 名は安定させる。
+- `Require status checks to pass` を有効にすると、必須チェックがすべて通るまでマージできない。
+- workflow の check 名が変わると Ruleset 側の必須チェック名と不整合になりやすいので、CI の job 名は安定させる（例: `verify`）。
+```
