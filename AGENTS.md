@@ -1,8 +1,3 @@
----
-
-## AGENTS.md（全文・貼り替え用）
-
-```md
 # AGENTS.md
 
 ## 言語
@@ -20,6 +15,17 @@
 - 特定ディレクトリで追加ルールが必要な場合は、そのディレクトリ直下に `AGENTS.md` または `AGENTS.override.md` を置く。
 - 同一ディレクトリでは `AGENTS.override.md` が `AGENTS.md` より優先される。
 - 変更対象ファイルに近い階層の指示ほど優先する（root はフォールバック）。
+
+## Review guidelines
+
+このセクションは Codex の GitHub Code Review が参照するレビュー方針です。変更されたファイルに最も近い `AGENTS.md` の内容が優先されます。:contentReference[oaicite:7]{index=7}
+
+- PII/秘密情報をログ・例・コメント・テストデータに含めない。
+- 意図しない public surface 変更を避ける（routes / env vars / exported APIs）。
+- 無関係な差分を避ける（タスクと関係ない整形・リファクタを混ぜない）。
+- CI を壊さない（`verify` を通せない変更は不可）。
+- Frontend の UI は shadcn/ui を優先する（独自UIの乱立を避ける）。
+- 重要度は P0/P1 を優先して指摘する（必要なら `@codex review for <focus>` で観点指定）。
 
 # 開発ルール（必須）
 
@@ -56,12 +62,14 @@
 
 - `.husky/pre-commit` で `npx lint-staged` が実行される。
 - ステージ済みファイルに対して自動修正が走る（JS/TS: Prettier/ESLint、Python: Ruff）。
+- Python の自動修正は、ステージされた `*.py` に対して `ruff check --fix` と `ruff format` が走る（`backend/.venv` が前提）。
 - 自動修正で差分が追加される場合があるため、commit が止まったら `git status` を確認し、必要なら `git add` を行ってから再度 commit する。
 
 ## 事前確認が必要な変更（勝手に進めない）
 
 - 以下に該当する場合は、実装前に確認を取る（理由・影響範囲・代替案も併記する）:
   - 本番依存の追加/削除（transitive deps を含む）
+  - UIライブラリの追加（shadcn/ui 以外を足す、または設計が変わるもの）
   - 大規模リファクタ、repo 全体の整形、タスクと無関係な変更の混入
   - 認証/認可（authn/authz）、middleware、アクセス制御の変更
   - `.github/workflows/*`、CI の挙動、リポジトリ運用ルール（Ruleset など）に関する変更
@@ -97,11 +105,19 @@
   - 型チェックは Pyright が正。
   - テストは pytest が正。
 
+## UI 開発ルール（shadcn/ui を優先）
+
+- UI の新規実装では、まず `components/ui/*` にある shadcn/ui コンポーネントを使う。
+- 既存の shadcn/ui で足りない場合は、先に CLI で追加してから使う（例: `npx shadcn@latest add dialog`）。
+- Tailwind のクラス直書きで大きなUIを組まない。部品化する場合は shadcn/ui の流儀に寄せる。
+- `lib/utils.ts` の `cn` を使って class 結合を統一する。
+- UI変更があるPRでは、必ずスクリーンショット（可能なら）を添付する。
+
 ## PR 提案時の出力（レビュー用）
 
 - PR を提案するときに必ず含める:
   - 変更概要
-  - 実行したコマンドと結果（最低限 `npm run check`、Python を触ったなら `pyright` と `python -m pytest`）
+  - 実行したコマンドと結果（最低限 `npm run check`。Python を触ったなら `pyright` と `python -m pytest`）
   - 大きな整形差分が出た場合の理由
   - UI 変更がある場合はスクリーンショット（可能なら）
   - 挙動変更がある場合はリスクとロールバック方針
@@ -111,15 +127,15 @@
 ## プロジェクト構造 / モジュール
 
 - `app/` は Next.js App Router の routes と共通 UI（例: `app/page.tsx`, `app/layout.tsx`）。
-- `app/globals.css` は global styles と Tailwind directives。
-- `public/` は静的アセット。
+- `components/` は UI コンポーネント（shadcn/ui は `components/ui/` 配下に生成される前提）。
+- `lib/` は共通ユーティリティ。
 - `backend/` は Python バックエンド（FastAPI + Ruff + Pyright + pytest）。
-- 主要設定ファイル: `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`, `postcss.config.mjs`。
+- 主要設定ファイル: `next.config.ts`, `tsconfig.json`, `eslint.config.mjs`, `postcss.config.mjs`, `components.json`。
 
 ## ビルド / 開発 / 検証コマンド（Frontend）
 
 - `npm install` 依存をインストール。
-- `npm run dev` ローカル開発（`http://localhost:3000`）。
+- `npm run dev` ローカル開発。
 - `npm run build` 本番ビルド。
 - `npm run start` 本番ビルドを起動（`npm run build` 後）。
 - `npm run lint` ESLint 実行。
@@ -142,66 +158,11 @@
   - `python -m pytest`
   - `uvicorn app:app --reload --port 8000`
 
-## コーディング規約 / 命名
+# `@codex review` の使い方（GitHub）
 
-- TypeScript + React。コンポーネントや route は `tsx` を優先。
-- 整形はツールに任せ、手での揃えを避ける。
-- Tailwind class の順序は `prettier-plugin-tailwindcss` が正。
-- 命名:
-  - React component は PascalCase（例: `HeroBanner`）
-  - Hooks は `useX`
-  - route segment folder は小文字（App Router の慣例）
-
-## テスト方針
-
-- Frontend:
-  - test runner は必要に応じて導入する（導入時は事前確認）。
-- Backend:
-  - pytest を使用。
-  - import 解決を安定させるため、基本は `backend/` を root として `python -m pytest` を実行する。
-
-## commit / PR の方針
-
-- commit は最小・目的単位。
-- commit subject は簡潔な命令形（例: `Add pricing section`）。
-- PR は小さく、リファクタと機能追加は混ぜない（必要がある場合は理由を書く）。
-- PR に含める:
-  - 短い概要
-  - 検証内容（コマンド実行結果）
-  - UI 変更のスクリーンショット
-  - 関連 issue へのリンク（あれば）
-
-## 設定 / 環境
-
-- secrets は `.env.local` に置き、コミットしない。
-- `.prettierignore` で生成物や不要なディレクトリを除外（例: `.next`, `node_modules`, `.specstory`）。
-- Tailwind 並びが怪しい場合は `npx prettier --write app/page.tsx` で確認してよい。
-- Python の `.venv` は `backend/.venv` を使用し、コミットしない。
-
-# `@codex review` 用のレビュー観点
-
-## 重大度（P0-P3）
-
-- P0: セキュリティ問題、credential/PII 漏洩、データ破壊、ビルドが壊れる
-- P1: 挙動不正、回帰、UI 崩れ、互換性問題
-- P2: 保守性の低下、エッジケース不足、軽微な性能懸念
-- P3: 表記、コメント、軽微な改善提案
-
-## この repo で必ず見ること
-
-- secrets/PII をログに出さない。
-- 意図しない public surface 変更を避ける（routes / env vars / exported APIs）。
-- Next.js App Router:
-  - `"use client"` は必要最小限にする
-  - server/client の境界を明確にする
-- 差分を最小にする（無関係なリファクタをしない）。
-- PR コメントで焦点指定があればそれを最優先（例: security）。
-
-## GitHub での使い方
-
-- レビュー依頼: `@codex review`
-- 観点を絞る: `@codex review for <focus>`
-- 指摘は P0/P1 を優先して出す。
+- PR のコメント欄（Conversation）で `@codex review` を投稿するとレビューが実行される。:contentReference[oaicite:8]{index=8}
+- 観点を絞る場合は `@codex review for <focus>` を使う。:contentReference[oaicite:9]{index=9}
+- Codex はリポジトリ内の `AGENTS.md` を探索し、このファイルの `## Review guidelines` を参照してレビューする。:contentReference[oaicite:10]{index=10}
 
 # GitHub Actions / Ruleset を新規リポジトリで有効化する手順
 
@@ -243,4 +204,3 @@
 
 - `Require status checks to pass` を有効にすると、必須チェックがすべて通るまでマージできない。
 - workflow の check 名が変わると Ruleset 側の必須チェック名と不整合になりやすいので、CI の job 名は安定させる（例: `verify`）。
-```

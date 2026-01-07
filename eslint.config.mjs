@@ -16,6 +16,8 @@ export default defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    'jest.config.js',
+    'playwright.config.ts',
 
     '**/node_modules/**',
     '**/.venv/**',
