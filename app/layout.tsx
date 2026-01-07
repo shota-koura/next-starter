@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
+// ▼ 1. ここに追加：Sonner（通知機能）の部品をインポート
+import { Toaster } from '@/components/ui/sonner';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -28,6 +30,8 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        {/* ▼ 2. ここに追加：通知が表示される場所（受け皿）を設置 */}
+        <Toaster />
       </body>
     </html>
   );
