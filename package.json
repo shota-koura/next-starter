@@ -16,7 +16,7 @@
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
     "fix": "npm run format && npm run lint:fix",
-    "check": "npm run format:check && npm run lint && npm run test:ci && npm run build",
+    "check": "npm run format:check && npm run lint && npm run test:ci && next build --webpack",
     "prepare": "husky"
   },
   "dependencies": {
