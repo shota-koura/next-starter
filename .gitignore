@@ -50,3 +50,6 @@ backend/**/.mypy_cache/
 # e2e
 test-results/
 playwright-report/
+
+# specstory
+.specstory/
