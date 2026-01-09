@@ -10,6 +10,7 @@
     "lint:fix": "eslint app components lib --fix",
     "format": "prettier --write app components lib __tests__ e2e .github README.md AGENTS.md jest.config.js jest.setup.ts playwright.config.ts *.json *.mjs *.ts",
     "format:check": "prettier --check app components lib __tests__ e2e .github README.md AGENTS.md jest.config.js jest.setup.ts playwright.config.ts *.json *.mjs *.ts",
+    "precommit": "npm run format && npm run format:check",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:ci": "jest --ci",
