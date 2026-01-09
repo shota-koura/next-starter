@@ -19,5 +19,19 @@
     "javascriptreact",
     "typescript",
     "typescriptreact"
+  ],
+  "cSpell.words": [
+    "coderabbit",
+    "coderabbitai",
+    "pyright",
+    "ruff",
+    "uvicorn",
+    "fastapi",
+    "pytest",
+    "venv",
+    "playwright",
+    "lintstaged",
+    "shadcn",
+    "tailwindcss"
   ]
 }
