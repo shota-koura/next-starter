@@ -40,6 +40,41 @@
 - `npm run fix` / `ruff check --fix` で大量差分が出た場合:
   - PR で理由を説明する、または
   - 整形のみの commit と機能変更 commit を分ける
+- 新しい util/型/スキーマ/共通関数を追加する前に、まず既存実装を探索する（`$dedupe` を推奨）。
+
+### 命名規則（検索性・重複抑止）
+
+このリポジトリでは「追加前に横断検索する」運用を前提にする。
+命名の一貫性を上げ、検索漏れによる重複実装を抑える。
+
+全般:
+
+- 既存がある場合は、既存の命名・語彙を最優先で踏襲する（新しい言い換えを作らない）。
+- 同一概念は同一トークンで表現する（例: `User` と決めたら、同じ意味で `AccountUser` のような別名を増やさない）。
+- 主要な export（関数/クラス/型/スキーマ/コンポーネント）の名前と、ファイル名（またはディレクトリ名）を対応させる。
+- `utils2.ts` / `helpers_new.ts` のような “番号や曖昧語の増殖” を避ける。必要なら責務が分かる具体名にする（例: `date-format.ts`、`auth-token.ts`）。
+
+TypeScript / Frontend:
+
+- React コンポーネント:
+  - コンポーネント名は `PascalCase`（例: `UserCard`）。
+  - `components/` 配下のファイル名は原則 `kebab-case.tsx`（例: `user-card.tsx`）。
+  - shadcn/ui 由来の `components/ui/*` は既存の命名を踏襲する。
+  - Next.js 固有の `page.tsx` / `layout.tsx` / `loading.tsx` 等は例外（ルーティング規約を優先）。
+- Hooks:
+  - Hook 関数名は `useXxx`（例: `useUser`）。
+  - 可能ならファイル名も `use-xxx.ts` など対応させる。
+- ユーティリティ関数:
+  - 役割を接頭辞で統一する（例: `getXxx` / `createXxx` / `parseXxx` / `formatXxx` / `toXxx` / `isXxx` / `assertXxx`）。
+  - boolean は `isXxx` / `hasXxx` を優先し、`checkXxx` のような曖昧語は避ける。
+- 型/スキーマ:
+  - 型は `Xxx`、入力は `XxxInput`、出力は `XxxOutput`、API payload は `XxxRequest` / `XxxResponse` を優先する（既存があればそれに合わせる）。
+  - Zod スキーマは `XxxSchema` の命名を優先し、`z.infer<typeof XxxSchema>` と対応させる。
+
+Python / Backend:
+
+- モジュール/関数/変数は `snake_case`、クラスは `PascalCase` を基本とする。
+- pytest のテストは `test_*.py` とし、対象に対応する名称を含める（例: `test_health.py`）。
 
 ### UI 方針
 
@@ -105,6 +140,7 @@
 このリポジトリでは、長い手順・状況依存の手順は skills に分離する。
 skills は `$<skill-name>` で呼び出す。
 
+- 重複検知/統合（既存探索の標準手順）: `$dedupe`
 - PR/CI の一連フロー（push後）: `$pr-flow`
 - CI 失敗ログ抽出: `$ci-log-failed`
 - CodeRabbit 指摘の抽出と要約: `$coderabbit-digest`

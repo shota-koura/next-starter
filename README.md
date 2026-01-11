@@ -64,6 +64,7 @@ Next.js (App Router) + TypeScript + Tailwind CSS のフロントエンドと、P
 - npm: Node に同梱
 - Python: 3.10 以上推奨
 - GitHub CLI: `gh`（PR/CI 運用や skills の実行に必要）
+- （推奨）ripgrep: `rg`（`$dedupe` skill の既存実装検索に使用）
 - （任意）Cursor / VS Code
 - （任意）WSL (Ubuntu) 環境でも動作
 
@@ -130,6 +131,11 @@ next-starter/
 - `$ruleset-notes`
   - Ruleset（required checks）周りの運用メモ（候補が出ない、CodeRabbit を必須化したい等）
 
+#### 重複抑止（既存探索）
+
+- `$dedupe`
+  - `rg` で既存実装を横断検索し、追記/統合の候補を提示する（util/型/スキーマの増殖を防ぐ）
+
 #### 検証コマンド（開発ループ / 完了前）
 
 - `$verify-fast`
@@ -162,6 +168,7 @@ next-starter/
 
 ### よく使う呼び出し例
 
+- 新しい util/型/スキーマを追加する前に既存探索する: `$dedupe`
 - push 後の PR/CI フローを回す: `$pr-flow`
 - CI が落ちたのでログを出す: `$ci-log-failed`
 - CodeRabbit 指摘を一覧して要点整理する: `$coderabbit-digest`
