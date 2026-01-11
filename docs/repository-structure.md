@@ -64,6 +64,7 @@
 │   ├── .what-is-this.md
 │   └── history
 │       └── 2026-01-04_07-12Z-bashスクリプトの和訳.md
+├── .steering
 ├── .vscode
 │   └── settings.json
 ├── AGENTS.md
@@ -97,6 +98,11 @@
 ├── components.json
 ├── context
 ├── docs
+│   ├── architecture.md
+│   ├── development-guidelines.md
+│   ├── functional-design.md
+│   ├── glossary.md
+│   ├── product-requirements.md
 │   └── repository-structure.md
 ├── e2e
 │   └── health.spec.ts
@@ -124,5 +130,5 @@
 │   └── tree.sh
 └── tsconfig.json
 
-34 directories, 85 files
+35 directories, 90 files
 ```
