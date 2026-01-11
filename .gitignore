@@ -53,3 +53,6 @@ playwright-report/
 
 # specstory
 .specstory/
+
+# context
+context
