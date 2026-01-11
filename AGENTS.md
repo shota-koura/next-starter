@@ -133,7 +133,7 @@ Python / Backend:
   - `feat(backend): ヘルスチェックAPIを追加`
   - `fix(frontend): モバイルでボタンが切れる問題を修正`
   - `docs: セットアップ手順を更新`
-  - `ci: PythonテストをCIに追加`
+  - `chore: 上記以外の修正`
 
 ## skills（手順の本体）
 
