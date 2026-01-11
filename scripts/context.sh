@@ -125,6 +125,12 @@ if [[ ${#paths[@]} -eq 0 ]]; then
   exit 2
 fi
 
+# Prevent path traversal / weird filenames (NAME=../x etc.)
+if [[ ! "$NAME" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  echo "Error: --name must match ^[A-Za-z0-9._-]+$ (got: $NAME)" >&2
+  exit 2
+fi
+
 mkdir -p "$OUT_DIR"
 
 ts="$(date +%Y%m%d_%H%M%S)"
@@ -139,29 +145,32 @@ out_path="${OUT_DIR%/}/${NAME}_${ts}.md"
 
 append_section_raw() {
   local title="$1"
-  local cmd="$2"
-  echo "# ${title}" >> "$out_path"
-  echo >> "$out_path"
-  eval "$cmd" >> "$out_path"
-  echo >> "$out_path"
-  echo >> "$out_path"
+  shift
+  printf "# %s\n\n" "$title" >> "$out_path"
+  "$@" >> "$out_path"
+  printf "\n\n" >> "$out_path"
 }
 
 append_section_fenced() {
   local title="$1"
   local lang="$2"
-  local cmd="$3"
-  echo "# ${title}" >> "$out_path"
-  echo >> "$out_path"
+  shift 2
+
+  # Use tildes to avoid:
+  # - shell backtick parsing issues
+  # - common collisions when the content contains ``` (especially for Markdown files)
+  local fence="~~~~"
+
+  printf "# %s\n\n" "$title" >> "$out_path"
+
   if [[ -n "$lang" ]]; then
-    echo '```'"$lang" >> "$out_path"
+    printf "%s%s\n" "$fence" "$lang" >> "$out_path"
   else
-    echo '```' >> "$out_path"
+    printf "%s\n" "$fence" >> "$out_path"
   fi
-  eval "$cmd" >> "$out_path"
-  echo >> "$out_path"
-  echo '```' >> "$out_path"
-  echo >> "$out_path"
+
+  "$@" >> "$out_path"
+  printf "\n%s\n\n" "$fence" >> "$out_path"
 }
 
 # Expand a directory into files (stable order)
@@ -200,9 +209,9 @@ for p in "${paths[@]}"; do
   if [[ "$p" == "-" ]]; then
     title="STDIN"
     if [[ "$RAW" == "1" ]]; then
-      append_section_raw "$title" "cat"
+      append_section_raw "$title" cat
     else
-      append_section_fenced "$title" "" "cat"
+      append_section_fenced "$title" "" cat
     fi
     continue
   fi
@@ -210,10 +219,10 @@ for p in "${paths[@]}"; do
   if [[ -f "$p" ]]; then
     title="$p"
     if [[ "$RAW" == "1" ]]; then
-      append_section_raw "$title" "cat \"${p}\""
+      append_section_raw "$title" cat -- "$p"
     else
       lang="$(lang_for "$p")"
-      append_section_fenced "$title" "$lang" "cat \"${p}\""
+      append_section_fenced "$title" "$lang" cat -- "$p"
     fi
     continue
   fi
@@ -222,10 +231,10 @@ for p in "${paths[@]}"; do
     while IFS= read -r f; do
       title="$f"
       if [[ "$RAW" == "1" ]]; then
-        append_section_raw "$title" "cat \"${f}\""
+        append_section_raw "$title" cat -- "$f"
       else
         lang="$(lang_for "$f")"
-        append_section_fenced "$title" "$lang" "cat \"${f}\""
+        append_section_fenced "$title" "$lang" cat -- "$f"
       fi
     done < <(expand_dir "$p")
     continue
