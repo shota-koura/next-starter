@@ -109,8 +109,6 @@ next-starter/
   README.md
 ```
 
-````
-
 ## Codex skills（.codex/skills）
 
 このテンプレは、Codex CLI の skills（`.codex/skills/<skill-name>/SKILL.md`）を同梱しています。
@@ -579,4 +577,3 @@ python -m pytest
 - Playwright の成果物はコミットしません（`.gitignore` を参照）。
 - AIエージェント運用（Codex CLI 等）向けのルールは `AGENTS.md` を参照してください。
 - 長い運用手順は `.codex/skills/` に分離されています。
-````
