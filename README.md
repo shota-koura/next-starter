@@ -123,23 +123,19 @@ next-starter/
 
 - `$pr-flow`
   - push 後の PR 作成/表示、CI 監視、PR コメントでの `@codex review` 投稿、（任意で）CodeRabbit 指摘の確認、マージコマンド提示までを定型化
-
 - `$ci-log-failed`
   - CI 失敗時に、失敗チェック名と最新 run の失敗ログ（`gh run view --log-failed`）を抽出する
-
 - `$coderabbit-digest`
   - CodeRabbit の Issue コメント / inline コメント / review を `gh api` で抽出し、P0/P1 優先で要点整理する
-
 - `$ruleset-notes`
   - Ruleset（required checks）周りの運用メモ（候補が出ない、CodeRabbit を必須化したい等）
 
 #### 検証コマンド（開発ループ / 完了前）
 
 - `$verify-fast`
-  - 開発ループ中の速い検証（frontend/backend の最小セット）
-
+  - 開発ループ中の速い検証（変更範囲に応じた最小セット）
 - `$verify-full`
-  - PR 前 / タスク完了前のフル検証（frontend: `npm run fix` + `npm run check`、backend: ruff/pyright/pytest、必要に応じて E2E）
+  - PR 前 / タスク完了前のフル検証（CI 相当の検証セット。frontend: `npm run fix` + `npm run check`、backend 変更時: ruff/pyright/pytest、必要に応じて E2E）
 
 #### ブランチ運用
 
@@ -153,13 +149,10 @@ next-starter/
 
 - `$mcp-context7-docs`（doc 参照）
   - 依存ライブラリの一次情報（公式ドキュメント/README 等）を引いて実装判断に反映する
-
 - `$mcp-playwright-debug`（UI 再現/スクショ/ログ収集）
   - UI の再現、スクリーンショット、console/network 要点を収集して原因切り分けに使う
-
 - `$mcp-serena-refactor`（安全なリファクタ）
   - シンボル参照を追跡しながら rename/置換を行い、検索置換の事故を避ける
-
 - `$mcp-chrome-devtools-perf`（パフォーマンス計測）
   - trace/insight でパフォーマンス課題を根拠づけ、改善ポイントを特定する
 
@@ -172,7 +165,8 @@ next-starter/
 - push 後の PR/CI フローを回す: `$pr-flow`
 - CI が落ちたのでログを出す: `$ci-log-failed`
 - CodeRabbit 指摘を一覧して要点整理する: `$coderabbit-digest`
-- 完了前にフル検証: `$verify-full`
+- 開発ループ中にサクッと検証する: `$verify-fast`
+- PR 前 / 完了前にフル検証する: `$verify-full`
 
 ## Quick Start（最短で動かす）
 
