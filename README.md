@@ -54,12 +54,16 @@ Next.js (App Router) + TypeScript + Tailwind CSS のフロントエンドと、P
 - （任意）Codex Code Review（GitHub の PR コメントで `@codex review`）
   - Codex 設定で対象リポジトリの Code review を ON にする必要あり
   - Codex は `AGENTS.md` の `Review guidelines` を参照してレビューする
+- Codex skills（`.codex/skills/`）
+  - PR/CI/レビュー運用や検証コマンドを、Codex CLI の skills として定型化（`$pr-flow` など）
+  - 詳細は後述の「Codex skills（.codex/skills）」参照
 
 ## Requirements
 
 - Node.js: 20.x 推奨
 - npm: Node に同梱
 - Python: 3.10 以上推奨
+- GitHub CLI: `gh`（PR/CI 運用や skills の実行に必要）
 - （任意）Cursor / VS Code
 - （任意）WSL (Ubuntu) 環境でも動作
 
@@ -96,12 +100,81 @@ next-starter/
     workflows/ci.yml
     rulesets/
       protect-main.json # Ruleset のエクスポート（Import 用）
+  .codex/
+    skills/            # Codex skills（PR/CI運用などの手順を定型化）
   .coderabbit.yaml     # CodeRabbit 設定（任意機能。PRレビュー自動化）
   components.json      # shadcn/ui の設定
   package.json
   AGENTS.md
   README.md
 ```
+
+````
+
+## Codex skills（.codex/skills）
+
+このテンプレは、Codex CLI の skills（`.codex/skills/<skill-name>/SKILL.md`）を同梱しています。
+
+- `AGENTS.md` は「方針（常時適用）」を主に扱い、長い運用手順は skills に分離しています。
+- skills は Codex CLI セッション内で `$<skill-name>` と入力して呼び出す想定です（例: `$pr-flow`）。
+- 自分の運用に合わせて、`.codex/skills/**/SKILL.md` を編集してカスタマイズできます。
+
+### 同梱 skills 一覧
+
+#### PR / CI / レビュー運用
+
+- `$pr-flow`
+  - push 後の PR 作成/表示、CI 監視、PR コメントでの `@codex review` 投稿、（任意で）CodeRabbit 指摘の確認、マージコマンド提示までを定型化
+
+- `$ci-log-failed`
+  - CI 失敗時に、失敗チェック名と最新 run の失敗ログ（`gh run view --log-failed`）を抽出する
+
+- `$coderabbit-digest`
+  - CodeRabbit の Issue コメント / inline コメント / review を `gh api` で抽出し、P0/P1 優先で要点整理する
+
+- `$ruleset-notes`
+  - Ruleset（required checks）周りの運用メモ（候補が出ない、CodeRabbit を必須化したい等）
+
+#### 検証コマンド（開発ループ / 完了前）
+
+- `$verify-fast`
+  - 開発ループ中の速い検証（frontend/backend の最小セット）
+
+- `$verify-full`
+  - PR 前 / タスク完了前のフル検証（frontend: `npm run fix` + `npm run check`、backend: ruff/pyright/pytest、必要に応じて E2E）
+
+#### ブランチ運用
+
+- `$branch-create`
+  - 新しい作業を開始する際のブランチ作成を定型化（git alias 優先、無ければフォールバック手順）
+
+#### MCP 連携（任意・環境依存）
+
+以下は、MCP（Model Context Protocol）で対応ツールが有効化されている前提の補助 skill です。
+テンプレ利用者が MCP を使わない場合でも、削除せずに「未使用で問題ない」想定です。
+
+- `$mcp-context7-docs`（doc 参照）
+  - 依存ライブラリの一次情報（公式ドキュメント/README 等）を引いて実装判断に反映する
+
+- `$mcp-playwright-debug`（UI 再現/スクショ/ログ収集）
+  - UI の再現、スクリーンショット、console/network 要点を収集して原因切り分けに使う
+
+- `$mcp-serena-refactor`（安全なリファクタ）
+  - シンボル参照を追跡しながら rename/置換を行い、検索置換の事故を避ける
+
+- `$mcp-chrome-devtools-perf`（パフォーマンス計測）
+  - trace/insight でパフォーマンス課題を根拠づけ、改善ポイントを特定する
+
+注意:
+
+- MCP 設定には API key 等の秘密情報が含まれる場合があります。ログや README、PR本文に貼らないでください。
+
+### よく使う呼び出し例
+
+- push 後の PR/CI フローを回す: `$pr-flow`
+- CI が落ちたのでログを出す: `$ci-log-failed`
+- CodeRabbit 指摘を一覧して要点整理する: `$coderabbit-digest`
+- 完了前にフル検証: `$verify-full`
 
 ## Quick Start（最短で動かす）
 
@@ -160,6 +233,32 @@ ruff format .
 pyright
 python -m pytest
 ```
+
+## Git運用（ブランチ作成ショートカット: git alias）
+
+新しい作業は「1ブランチ=1PR」を基本とし、ブランチ作成時に main を最新化してから切る運用を推奨します。
+WSL(Ubuntu) などのターミナルで、以下の git alias を 1 回だけ設定してください（PC/環境ごとの設定です）。
+
+```bash
+git config --global alias.feat  '!f(){ set -e; test -z "$(git status --porcelain)" || { echo "ERROR: working tree is not clean"; exit 1; }; git switch main; git pull --ff-only; git switch -c "feat/$1"; }; f'
+git config --global alias.fix   '!f(){ set -e; test -z "$(git status --porcelain)" || { echo "ERROR: working tree is not clean"; exit 1; }; git switch main; git pull --ff-only; git switch -c "fix/$1"; }; f'
+git config --global alias.docs  '!f(){ set -e; test -z "$(git status --porcelain)" || { echo "ERROR: working tree is not clean"; exit 1; }; git switch main; git pull --ff-only; git switch -c "docs/$1"; }; f'
+git config --global alias.chore '!f(){ set -e; test -z "$(git status --porcelain)" || { echo "ERROR: working tree is not clean"; exit 1; }; git switch main; git pull --ff-only; git switch -c "chore/$1"; }; f'
+```
+
+使い方（例）:
+
+```bash
+git feat agents-gh-flow
+git fix ci-format
+git docs readme-update
+git chore vscode-settings
+```
+
+注意:
+
+- working tree に未コミット変更があると停止します（安全のため）。
+- default branch が `main` でない場合は、この alias はそのままでは動きません。
 
 ## Testing（テスト）
 
@@ -235,6 +334,7 @@ Codex CLI について:
 - Codex CLI はエディタの保存時整形を使いません。
 - その代わり、commit（Husky）と CI（GitHub Actions）が品質を担保します。
 - 任意で、Codex CLI のローカルレビュー（`codex` -> `/review`）を併用できます。
+- また、このテンプレは Codex skills（`.codex/skills`）を同梱しており、PR/CI運用や検証手順を `$pr-flow` などで呼び出せます（詳細は「Codex skills（.codex/skills）」参照）。
 
 ### 3) CI（GitHub Actions）
 
@@ -263,13 +363,18 @@ GitHub のテンプレ機能は「リポジトリ内のファイル」はコピ�
 手順:
 
 1. 新しいリポジトリを開く
+
 2. `Settings` を開く
+
 3. 左メニューから `Rules` -> `Rulesets` を開く
+
 4. `New ruleset` の右側にあるプルダウン（またはメニュー）から `Import a ruleset` を選ぶ
+
 5. このテンプレに含まれる `.github/rulesets/protect-main.json` をアップロードする
    - ローカルに clone 済みなら、作業PC上のファイルをそのまま選択できます
 
 6. 取り込み後、対象ブランチが `main` になっていること、`verify`（CI）が必須チェックとして設定されていることを確認する
+
 7. いちど PR を作って CI が動くこと、CI が落ちたらマージできないことを確認する
 
 ### Export 手順（Ruleset を変更したときにテンプレ側へ反映する）
@@ -327,8 +432,11 @@ GitHub のテンプレ機能は「リポジトリ内のファイル」はコピ�
    - [https://app.coderabbit.ai](https://app.coderabbit.ai)
 
 2. CodeRabbit のダッシュボードで `Add Repositories` を押す
+
 3. GitHub の権限ダイアログで `Only select repositories` を選ぶ
+
 4. 対象リポジトリを選択する
+
 5. `Install & Authorize` を押して許可する
 
 確認:
@@ -348,6 +456,7 @@ GitHub のテンプレ機能は「リポジトリ内のファイル」はコピ�
    - [https://chatgpt.com/codex](https://chatgpt.com/codex)
 
 2. GitHub アカウントを接続する（リポジトリが読める状態にする）
+
 3. Codex settings を開き、対象リポジトリの `Code review` を ON にする
    - 参照: [https://developers.openai.com/codex/integrations/github/](https://developers.openai.com/codex/integrations/github/)
 
@@ -410,6 +519,7 @@ npm run dev
 npm run build
 npm run lint
 npm run lint:fix
+npm run precommit
 npm run format
 npm run format:check
 npm run test:ci
@@ -468,3 +578,5 @@ python -m pytest
 - Python の依存は venv 前提です。`backend/.venv` はコミットしません。
 - Playwright の成果物はコミットしません（`.gitignore` を参照）。
 - AIエージェント運用（Codex CLI 等）向けのルールは `AGENTS.md` を参照してください。
+- 長い運用手順は `.codex/skills/` に分離されています。
+````
