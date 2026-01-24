@@ -95,9 +95,16 @@ PR_NUM="$(gh pr view --json number --jq .number)"
 
 while true; do
   HEAD_SHA="$(gh pr view --json headRefOid --jq .headRefOid)"
+  HEAD_TIME="$(gh api "repos/$REPO/commits/$HEAD_SHA" --jq .commit.author.date 2>/dev/null || true)"
 
-  ISSUE_CNT="$(gh api "repos/$REPO/issues/$PR_NUM/comments" --paginate --jq \
-    '[.[] | select(.user.login | test("coderabbit|chatgpt-codex-connector|codex"; "i"))] | length' 2>/dev/null || true)"
+  ISSUE_CNT="0"
+  if [[ -n "$HEAD_TIME" ]]; then
+    ISSUE_CNT="$(gh api "repos/$REPO/issues/$PR_NUM/comments" --paginate --jq \
+      '[.[]
+        | select(.user.login | test("coderabbit|chatgpt-codex-connector|codex"; "i"))
+        | select((.created_at | fromdateiso8601) >= ("'"$HEAD_TIME"'" | fromdateiso8601))
+      ] | length' 2>/dev/null || true)"
+  fi
 
   REVIEWS_HEAD_CNT="$(gh api "repos/$REPO/pulls/$PR_NUM/reviews" --paginate --jq \
     '[.[]
@@ -146,7 +153,7 @@ if [[ "$LINE_CNT_HEAD" != "0" ]]; then
     .[]
     | select(.user.login | test("coderabbit|chatgpt-codex-connector|codex"; "i"))
     | select(.commit_id == "'"$HEAD_SHA"'")
-    | "- \(.path):\((.line // .original_line // 0)|tostring) [\(.user.login)] \(.body | gsub("\\r?\\n"; " ") | .[:160])\\n  \(.html_url)"
+    | "- \(.path):\((.line // .original_line // 0)|tostring) [\(.user.login)] \(.body | gsub("\r?\n"; " ") | .[:160])\n  \(.html_url)"
   '
   echo "----- END REVIEW_P0_DIGEST -----"
 else
