@@ -168,7 +168,7 @@ PR_NUM="$(gh pr view --json number --jq .number)"
 
 while true; do
   HEAD_SHA="$(gh pr view --json headRefOid --jq .headRefOid)"
-  HEAD_TIME="$(gh api "repos/$REPO/commits/$HEAD_SHA" --jq .commit.author.date 2>/dev/null || true)"
+  HEAD_TIME="$(gh api "repos/$REPO/commits/$HEAD_SHA" --jq .commit.committer.date 2>/dev/null || true)"
 
   ISSUE_CNT="0"
   if [[ -n "$HEAD_TIME" ]]; then
