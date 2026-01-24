@@ -1,95 +1,9 @@
----
-name: repo-setup
-description: git clone（任意）後に Frontend/Backend の初期セットアップと「Recommended first run」を実行し、必要ツール（gh等）を検知して不足時はOS別インストール手順を提示する
----
-
-## 目的
-
-- README.md の「Quick Start」「Recommended first run（初回セットアップの推奨手順）」を、ターミナルで再現可能な定型手順として固定する。
-- clone 直後に依存関係導入と静的解析/テストを一通り通し、クリーンな状態で開発を開始できるようにする。
-- PR/CI 運用に必要な `gh` について、存在確認を行い、未導入なら OS を判定してインストール手順を提示する。
-
-## いつ使うか
-
-- 新しいPC/環境で、このリポジトリを初めて clone した直後。
-- `.venv` や `node_modules` が無い状態から、まとめて初期セットアップしたいとき。
-
-## 前提
-
-- OS は bash または PowerShell が使える環境（例: macOS / Linux / WSL / Windows）。
-- ネットワーク接続があり、npm/pip のインストールができること。
-- 次のコマンドが使えること（不足時はこの skill が検知して案内する）:
-  - `git`
-  - `node` / `npm`（Frontend を実行する場合）
-  - `python3`（Backend を実行する場合）
-  - `python3 -m pip` / `python3 -m venv`（Backend を実行する場合）
-- `gh` は PR/CI 運用に必要（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
-- `tree` は `scripts/tree.sh` に必要（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
-- `rg` は `$dedupe` に推奨（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
-- `jq` は PR/CI スキル（`pr-flow` / `pr-fix-loop`）で使用（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
-
-## 環境変数
-
-### clone をこの skill に含める場合（任意）
-
-- `REPO_URL`
-  - clone するリポジトリURL（例: `https://github.com/org/next-starter.git`）
-- `TARGET_DIR`
-  - clone 先のローカルディレクトリ名（例: `next-starter-local`）
-  - 「git clone の末尾に指定するローカルディレクトリ名」に相当
-
-### 実行オプション（任意）
-
-- `SKIP_FRONTEND`
-  - `1` の場合、Frontend セットアップをスキップ（デフォルト `0`）
-- `SKIP_BACKEND`
-  - `1` の場合、Backend セットアップをスキップ（デフォルト `0`）
-- `RUN_DEV`
-  - `1` の場合、最後に起動コマンドを「提示」ではなく「起動」まで行う（デフォルト `0`）
-  - 注意: `RUN_DEV=1` はプロセスが起動し続けるため、ターミナルを占有する
-
-## 使い方
-
-### A) clone からセットアップまで 1 回でやる（推奨）
-
-```bash
-export REPO_URL="https://github.com/<org>/<repo>.git"
-export TARGET_DIR="my-local-dir"
-$repo-setup
-```
-
-### B) すでに clone 済みのディレクトリで実行する
-
-```bash
-cd <cloned-dir>
-$repo-setup
-```
-
-## 1コマンド実行（推奨）
-
-次を実行する。
-
-```bash
-bash .codex/skills/repo-setup/scripts/repo-setup.sh
-```
-
-Windows ネイティブ（PowerShell）の場合:
-
-```powershell
-pwsh -File .codex/skills/repo-setup/scripts/repo-setup.ps1
-```
-
-- 環境変数（`REPO_URL` / `TARGET_DIR` / `SKIP_FRONTEND` / `SKIP_BACKEND` / `RUN_DEV`）は同様に有効。
-
-## 手順
-
-### 0) 前提コマンドの検知（gh を含む）
-
-```bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 SKIP_FRONTEND="${SKIP_FRONTEND:-0}"
 SKIP_BACKEND="${SKIP_BACKEND:-0}"
+RUN_DEV="${RUN_DEV:-0}"
 
 detect_os() {
   local u
@@ -115,15 +29,6 @@ need_cmd() {
     echo "[ERROR] required command not found: $c"
     exit 1
   fi
-}
-
-warn_cmd() {
-  local c="$1"
-  if ! command -v "$c" >/dev/null 2>&1; then
-    echo "[WARN] optional command not found: $c"
-    return 1
-  fi
-  return 0
 }
 
 OS_KIND="$(detect_os)"
@@ -288,12 +193,6 @@ if ! command -v jq >/dev/null 2>&1; then
       ;;
   esac
 fi
-```
-
-### 1) 作業ディレクトリ確定（clone する場合は clone して移動）
-
-```bash
-set -euo pipefail
 
 if [[ -n "${REPO_URL:-}" ]]; then
   if [[ -z "${TARGET_DIR:-}" ]]; then
@@ -321,19 +220,9 @@ else
   fi
 fi
 
-echo "[INFO] repo root: $(pwd)"
-```
-
-### 2) Frontend setup（README: npm install / format / check）
-
-README の「Recommended first run（Frontend setup）」を実行する。
-
-```bash
-set -euo pipefail
-
-SKIP_FRONTEND="${SKIP_FRONTEND:-0}"
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
+echo "[INFO] repo root: $(pwd)"
 
 if [[ "$SKIP_FRONTEND" != "1" ]]; then
   echo "[STEP] Frontend: npm install"
@@ -347,22 +236,10 @@ if [[ "$SKIP_FRONTEND" != "1" ]]; then
 else
   echo "[SKIP] Frontend setup"
 fi
-```
-
-### 3) Backend setup（README: venv 作成 / pip install / ruff/pyright/pytest）
-
-README の「Recommended first run（Backend setup）」を実行する。
-
-```bash
-set -euo pipefail
-
-SKIP_BACKEND="${SKIP_BACKEND:-0}"
-ROOT="$(git rev-parse --show-toplevel)"
-cd "$ROOT"
 
 if [[ "$SKIP_BACKEND" != "1" ]]; then
   echo "[STEP] Backend: create venv (if missing) + install deps"
-  cd backend
+  cd "$ROOT/backend"
 
   if [[ ! -d ".venv" ]]; then
     python3 -m venv .venv
@@ -389,17 +266,6 @@ if [[ "$SKIP_BACKEND" != "1" ]]; then
 else
   echo "[SKIP] Backend setup"
 fi
-```
-
-### 4) 初回整形の結果確認（差分が増えていないか）
-
-初回セットアップの実行で差分が出る場合があるため、機械的に検知して表示する。
-
-```bash
-set -euo pipefail
-
-ROOT="$(git rev-parse --show-toplevel)"
-cd "$ROOT"
 
 echo "[STEP] git status check"
 git status -sb
@@ -412,21 +278,8 @@ if [[ -n "$DIRTY" ]]; then
 else
   echo "[INFO] working tree clean"
 fi
-```
 
-### 5) 開発サーバ起動（提示 or 起動）
-
-README の「Quick Start」に沿った起動コマンドを案内する。
-
-#### 5.1 起動コマンドの提示（デフォルト）
-
-```bash
-set -euo pipefail
-
-ROOT="$(git rev-parse --show-toplevel)"
-cd "$ROOT"
-
-if [[ "${RUN_DEV:-0}" != "1" ]]; then
+if [[ "$RUN_DEV" != "1" ]]; then
   echo "[NEXT] 開発サーバ起動（別ターミナル推奨）"
   echo
   echo "Frontend:"
@@ -438,46 +291,17 @@ if [[ "${RUN_DEV:-0}" != "1" ]]; then
   echo "  source .venv/bin/activate"
   echo "  uvicorn app:app --reload --port 8000"
   echo "  http://localhost:8000/health"
+  exit 0
 fi
-```
 
-#### 5.2 起動まで行う（RUN_DEV=1 の場合）
+echo "[STEP] RUN_DEV=1: start backend (background) then frontend (foreground)"
 
-- backend をバックグラウンド起動し、その後 frontend をフォアグラウンド起動する。
-- 終了時は Ctrl-C（frontend 停止）後に backend プロセスを手動で止めること。
+(
+  cd "$ROOT/backend"
+  . .venv/bin/activate
+  .venv/bin/uvicorn app:app --reload --port 8000
+) &
 
-```bash
-set -euo pipefail
-
-ROOT="$(git rev-parse --show-toplevel)"
-cd "$ROOT"
-
-if [[ "${RUN_DEV:-0}" == "1" ]]; then
-  echo "[STEP] RUN_DEV=1: start backend (background) then frontend (foreground)"
-
-  (
-    cd backend
-    . .venv/bin/activate
-    .venv/bin/uvicorn app:app --reload --port 8000
-  ) &
-
-  echo "[INFO] backend started (background)"
-  echo "[STEP] start frontend (foreground)"
-  npm run dev
-fi
-```
-
-## 完了条件
-
-- Frontend:
-  - `npm install` が成功している
-  - `npm run format` が成功している
-  - `npm run check` が成功している
-
-- Backend:
-  - `backend/.venv` が作成されている
-  - `pip install -r requirements-dev.txt` が成功している
-  - `ruff check --fix .` / `ruff format .` / `pyright` / `pytest` が成功している
-
-- `gh` が未導入なら、OS別のインストール手順が提示されている
-- 必要に応じて開発サーバを起動できる状態になっている（起動コマンドを提示済み、または `RUN_DEV=1` で起動済み）
+echo "[INFO] backend started (background)"
+echo "[STEP] start frontend (foreground)"
+npm run dev

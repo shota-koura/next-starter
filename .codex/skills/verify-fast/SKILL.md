@@ -13,6 +13,35 @@ description: 開発ループ中の速い検証を、変更範囲に応じて実�
 - 小さな変更を入れた直後。
 - commit 前の確認（ただし commit 前の整形は `npm run precommit` が正）。
 
+## 1コマンド実行（推奨）
+
+次を実行する。
+
+```bash
+bash .codex/skills/verify-fast/scripts/verify-fast.sh
+```
+
+Windows ネイティブ（PowerShell）の場合:
+
+```powershell
+pwsh -File .codex/skills/verify-fast/scripts/verify-fast.ps1
+```
+
+- スクリプトが本ファイルの手順をまとめて実行する。
+
+## 環境変数（スクリプト用）
+
+- `RUN_FRONTEND`
+  - `auto` / `1` / `0`（デフォルト `auto`）
+  - `auto` の場合、`app/`・`components/`・`lib/`・`__tests__/`・`e2e/` の変更があれば Frontend を実行
+- `RUN_BACKEND`
+  - `auto` / `1` / `0`（デフォルト `auto`）
+  - `auto` の場合、`backend/`・`pyproject.toml`・`requirements*.txt` の変更があれば Backend を実行
+- `RUN_TEST`
+  - `1` の場合のみ `npm run test:ci` を実行（デフォルト `0`）
+- `RUN_PYTEST`
+  - `1` の場合のみ `pytest` を実行（デフォルト `0`）
+
 ## 手順（推奨）
 
 ### 0) 変更範囲を把握

@@ -29,6 +29,12 @@ description: push後にPR作成/表示、@codex review/投稿、CIとレビュ�
 bash .codex/skills/pr-flow/scripts/pr-flow.sh
 ```
 
+Windows ネイティブ（PowerShell）の場合:
+
+```powershell
+pwsh -File .codex/skills/pr-flow/scripts/pr-flow.ps1
+```
+
 - このスクリプトが本ファイルの手順をまとめて実行する。
 - スクリプトは `REVIEW_P0_DIGEST` を出力するため、Codex が日本語要約を返す。
 - 失敗した場合は「実行手順（手動）」に従う。

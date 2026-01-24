@@ -1,12 +1,12 @@
 ---
 name: verify-full
-description: 'PR前/タスク完了前のフル検証を実行する（frontend: fix+check / backend: ruff+pyright+pytest / 必要に応じてe2e）'
+description: 'PR前/タスク完了前のフル検証を実行する（frontend: fix+format/lint/test / backend: ruff+pyright+pytest / 必要に応じてe2e）'
 ---
 
 ## 目的
 
 - PR を提案する前、またはタスクを「完了」とする前に、CI 相当の検証を通す。
-- 「ローカルでは大丈夫だった」を減らす（format/lint/type/test/build を一通り通す）。
+- 「ローカルでは大丈夫だった」を減らす（format/lint/type/test を一通り通す）。
 
 ## いつ使うか
 
@@ -18,8 +18,34 @@ description: 'PR前/タスク完了前のフル検証を実行する（frontend:
 
 - このテンプレでは、Frontend のフル検証は以下を正とする:
   - `npm run fix`
-  - `npm run check`
+  - `npm run format:check`
+  - `npm run lint`
+  - `npm run test:ci`
 - Backend を変更した場合は、Backend のフル検証も実行する（Makefile があるなら Makefile 優先）。
+
+## 1コマンド実行（推奨）
+
+次を実行する。
+
+```bash
+bash .codex/skills/verify-full/scripts/verify-full.sh
+```
+
+Windows ネイティブ（PowerShell）の場合:
+
+```powershell
+pwsh -File .codex/skills/verify-full/scripts/verify-full.ps1
+```
+
+- スクリプトが本ファイルの手順をまとめて実行する。
+
+## 環境変数（スクリプト用）
+
+- `RUN_BACKEND`
+  - `auto` / `1` / `0`（デフォルト `auto`）
+  - `auto` の場合、`git diff --name-only` に `backend/` や `pyproject.toml` 等が含まれると Backend を実行する
+- `RUN_E2E`
+  - `1` の場合のみ `npm run e2e` を実行（デフォルト `0`）
 
 ## 手順
 
@@ -37,11 +63,14 @@ git diff --name-only
 
 ```bash
 npm run fix
-npm run check
+npm run format:check
+npm run lint
+npm run test:ci
 
 ```
 
-**補足:** `npm run fix` / `npm run check` が依存不足で落ちる場合は、まず `npm install` を疑う。
+**補足:** `npm run fix` / `npm run format:check` などが依存不足で落ちる場合は、まず `npm install` を疑う。
+**補足:** `next build` は CI で実行するため、ここでは実行しない。
 
 ### 2) Backend を変更した場合（必須）
 
@@ -97,7 +126,7 @@ npm run e2e
 
 ## 完了条件（この skill のゴール）
 
-- Frontend: `npm run fix` と `npm run check` が成功している
+- Frontend: `npm run fix` / `npm run format:check` / `npm run lint` / `npm run test:ci` が成功している
 - Backend を変更した場合: Backend のフル検証（ruff/pyright/pytest）が成功している
 - 必要に応じて E2E も実行し、成功している
 - PR 提案時に「実行したコマンド」を短く列挙できる
