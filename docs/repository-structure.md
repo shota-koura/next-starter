@@ -6,6 +6,7 @@
 .
 ├── .coderabbit.yaml
 ├── .codex
+│   ├── config.toml
 │   └── skills
 │       ├── branch-create
 │       │   └── SKILL.md
@@ -24,7 +25,9 @@
 │       ├── mcp-serena-refactor
 │       │   └── SKILL.md
 │       ├── pr-fix-loop
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── scripts
+│       │       └── pr-fix-loop.sh
 │       ├── pr-flow
 │       │   ├── SKILL.md
 │       │   └── scripts
@@ -140,5 +143,5 @@
 │   └── tree.sh
 └── tsconfig.json
 
-38 directories, 97 files
+39 directories, 99 files
 ```
