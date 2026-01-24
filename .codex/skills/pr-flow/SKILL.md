@@ -170,7 +170,7 @@ while true; do
   HEAD_SHA="$(gh pr view --json headRefOid --jq .headRefOid)"
   HEAD_TIME="$(gh api "repos/$REPO/commits/$HEAD_SHA" --jq .commit.committer.date 2>/dev/null || true)"
 
-  ISSUE_CNT="0"
+  ISSUE_CNT=""
   if [[ -n "$HEAD_TIME" ]]; then
     ISSUE_CNT="$(gh api "repos/$REPO/issues/$PR_NUM/comments" --paginate --jq \
       '[.[]
