@@ -24,7 +24,9 @@
 │       ├── mcp-serena-refactor
 │       │   └── SKILL.md
 │       ├── pr-fix-loop
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── scripts
+│       │       └── pr-fix-loop.sh
 │       ├── pr-flow
 │       │   └── SKILL.md
 │       ├── precommit
@@ -72,7 +74,6 @@
 │       ├── 2026-01-04_07-12Z-bashスクリプトの和訳.md
 │       ├── 2026-01-17_06-14Z-pr-フロー-skill-の-p0-処理設計.md
 │       └── 2026-01-24_03-05Z-スクリプト出力先ディレクトリ変更.md
-├── .steering
 ├── .vscode
 │   └── settings.json
 ├── AGENTS.md
@@ -139,5 +140,5 @@
 │   └── tree.sh
 └── tsconfig.json
 
-38 directories, 96 files
+38 directories, 97 files
 ```
