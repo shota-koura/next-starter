@@ -26,7 +26,9 @@
 │       ├── pr-fix-loop
 │       │   └── SKILL.md
 │       ├── pr-flow
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── scripts
+│       │       └── pr-flow.sh
 │       ├── precommit
 │       │   └── SKILL.md
 │       ├── repo-setup
@@ -139,5 +141,5 @@
 │   └── tree.sh
 └── tsconfig.json
 
-38 directories, 96 files
+39 directories, 97 files
 ```

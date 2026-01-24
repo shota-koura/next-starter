@@ -21,6 +21,18 @@ description: push後にPR作成/表示、@codex review/投稿、CIとレビュ�
 - `gh auth status` が通ること。
 - `scripts/pr.sh` がある場合はそれを優先して使う（無い場合はフォールバック手順）。
 
+## 1コマンド実行（推奨）
+
+次を実行する。
+
+```bash
+bash .codex/skills/pr-flow/scripts/pr-flow.sh
+```
+
+- このスクリプトが本ファイルの手順をまとめて実行する。
+- スクリプトは `REVIEW_P0_DIGEST` を出力するため、Codex が日本語要約を返す。
+- 失敗した場合は「実行手順（手動）」に従う。
+
 ## 運用ポリシー
 
 - CI とレビュー監視はユーザーへの確認なしで継続する。
@@ -43,7 +55,7 @@ description: push後にPR作成/表示、@codex review/投稿、CIとレビュ�
 - `AUTO_MERGE`
   - 問題が無い場合に自動マージを実行するか。デフォルト `1`。`0` でマージしない（コマンド提示のみ）
 
-## 実行手順
+## 実行手順（手動）
 
 ### 0) 現在状態を通知
 
