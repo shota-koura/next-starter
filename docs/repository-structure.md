@@ -11,7 +11,10 @@
 │       ├── branch-create
 │       │   └── SKILL.md
 │       ├── commit
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── scripts
+│       │       ├── commit.ps1
+│       │       └── commit.sh
 │       ├── dedupe
 │       │   └── SKILL.md
 │       ├── document-update
@@ -27,21 +30,37 @@
 │       ├── pr-fix-loop
 │       │   ├── SKILL.md
 │       │   └── scripts
+│       │       ├── pr-fix-loop.ps1
 │       │       └── pr-fix-loop.sh
 │       ├── pr-flow
 │       │   ├── SKILL.md
 │       │   └── scripts
+│       │       ├── pr-flow.ps1
 │       │       └── pr-flow.sh
 │       ├── precommit
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── scripts
+│       │       ├── precommit.ps1
+│       │       └── precommit.sh
 │       ├── repo-setup
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── scripts
+│       │       ├── repo-setup.ps1
+│       │       └── repo-setup.sh
 │       ├── setup-tailwind-frontend
 │       │   └── SKILL.md
-│       ├── verify-fast
+│       ├── skills-retro
 │       │   └── SKILL.md
+│       ├── verify-fast
+│       │   ├── SKILL.md
+│       │   └── scripts
+│       │       ├── verify-fast.ps1
+│       │       └── verify-fast.sh
 │       └── verify-full
-│           └── SKILL.md
+│           ├── SKILL.md
+│           └── scripts
+│               ├── verify-full.ps1
+│               └── verify-full.sh
 ├── .github
 │   ├── rulesets
 │   │   └── protect-main.json
@@ -116,6 +135,7 @@
 │   ├── functional-design.md
 │   ├── glossary.md
 │   ├── product-requirements.md
+│   ├── recomend-skills
 │   └── repository-structure.md
 ├── e2e
 │   └── health.spec.ts
@@ -143,5 +163,5 @@
 │   └── tree.sh
 └── tsconfig.json
 
-39 directories, 99 files
+46 directories, 112 files
 ```

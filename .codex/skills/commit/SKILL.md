@@ -1,13 +1,13 @@
 ---
 name: commit
-description: verify-full 実行後にガードレール検査を行い、COMMIT_MSG を用いて git add / git commit / git push を行う
+description: verify-full 実行後にガードレール検査を行い、COMMIT_MSG を自動生成または指定して git add / git commit / git push を行う
 ---
 
 ## 目的
 
 - commit 時点で CI 相当の検証を通し、後段（PR/CI）での手戻りを減らす。
 - 事前確認が必要な領域の変更を機械的に検知し、意図しない commit/push を防ぐ。
-- commit メッセージを運用で統一する（`COMMIT_MSG` 必須）。
+- commit メッセージは `COMMIT_MSG` 未設定時に差分から自動生成する。
 - 必要なら push まで行い、次工程（`$pr-flow`）へつなぐ。
 
 ## いつ使うか
@@ -17,20 +17,58 @@ description: verify-full 実行後にガードレール検査を行い、COMMIT_
 
 ## 前提
 
-- 直前に `$precommit` を実施していること（整形・`codex /review`・tree 更新が完了していること）。
+- 直前に `$precommit` を実施していること（整形・tree 更新が完了していること）。
 - 作業ブランチ上であること。
-- `COMMIT_MSG` を設定していること。
 
 ## 環境変数
 
-- `COMMIT_MSG`（必須）
-  - commit メッセージ本文。
+- `COMMIT_MSG`（任意）
+  - commit メッセージ本文。未設定なら差分から自動生成する。
   - 例: `feat(frontend): タスク作成フォームを追加`
 - `PUSH`（任意）
   - `1` なら push する（デフォルト `1`）。
   - `0` なら push しない（commit のみ）。
 - `REMOTE`（任意）
   - push 先の remote 名（デフォルト `origin`）。
+
+## 自動生成ルール（概要）
+
+- 変更ファイルは次を統合して判定する:
+  - `git diff --name-only`
+  - `git diff --name-only --cached`
+  - `git ls-files --others --exclude-standard`
+- 種別の推定:
+  - コード変更（frontend/backend/その他）が含まれる: `feat`
+  - 非コードのみ:
+    - docs のみ: `docs`
+    - tests のみ: `test`
+    - tooling のみ: `chore`
+    - 上記が混在: `chore`
+- scope の推定（`feat` のみ）:
+  - backend のみ: `backend`
+  - frontend のみ: `frontend`
+  - 混在: 省略
+- 要約テンプレート:
+  - `docs`: `ドキュメントを更新`
+  - `test`: `テストを更新`
+  - `chore`: `開発環境を更新`（混在時は `開発周辺を更新`）
+  - `feat`: `フロントエンドを更新` / `バックエンドを更新` / `フロントエンドとバックエンドを更新` / `変更を反映`
+
+## 1コマンド実行（推奨）
+
+次を実行する。
+
+```bash
+bash .codex/skills/commit/scripts/commit.sh
+```
+
+Windows ネイティブ（PowerShell）の場合:
+
+```powershell
+pwsh -File .codex/skills/commit/scripts/commit.ps1
+```
+
+- スクリプト内で `verify-full` を実行する（`verify-full` のスクリプトが必要）。
 
 ## ガードレール（必須）
 
@@ -47,7 +85,7 @@ description: verify-full 実行後にガードレール検査を行い、COMMIT_
 
 ## 手順
 
-### 0) 事前チェック（ブランチと COMMIT_MSG）
+### 0) 事前チェック（ブランチ）
 
 ```bash
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
@@ -56,14 +94,7 @@ if [[ "$BRANCH" == "main" || "$BRANCH" == "master" ]]; then
   exit 1
 fi
 
-if [[ -z "${COMMIT_MSG:-}" ]]; then
-  echo "[ERROR] COMMIT_MSG が未設定です。例:"
-  echo "  export COMMIT_MSG='feat(frontend): タスク作成フォームを追加'"
-  exit 1
-fi
-
 echo "[INFO] branch=$BRANCH"
-echo "[INFO] COMMIT_MSG=$COMMIT_MSG"
 ```
 
 ### 1) 状態確認
@@ -126,7 +157,12 @@ if [[ "$VIOLATION" == "1" ]]; then
 fi
 ```
 
-### 5) ステージング
+### 5) COMMIT_MSG 自動生成（未設定時）
+
+- `COMMIT_MSG` が未設定なら、自動生成して使用する。
+- 生成結果はログに表示される。必要なら `COMMIT_MSG` を明示設定して再実行する。
+
+### 6) ステージング
 
 原則として「この commit に含めるべきものだけ」を stage する。
 
@@ -148,13 +184,13 @@ git add -p
 git diff --cached
 ```
 
-### 6) commit
+### 7) commit
 
 ```bash
 git commit -m "$COMMIT_MSG"
 ```
 
-### 7) push（デフォルトで実行）
+### 8) push（デフォルトで実行）
 
 ```bash
 PUSH="${PUSH:-1}"
@@ -168,7 +204,7 @@ else
 fi
 ```
 
-### 8) 次の行動（任意）
+### 9) 次の行動（任意）
 
 - push 済みで PR を作成・更新する場合は `$pr-flow` を使う。
 - PR 前のドキュメント整合が必要な場合は `$document-update` を先に実行してから `$pr-flow` に進む（AGENTS.md を参照）。

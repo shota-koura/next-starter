@@ -32,6 +32,12 @@ description: CodeRabbit/Codexの行コメント（P0）とCI失敗ログを抽�
 bash .codex/skills/pr-fix-loop/scripts/pr-fix-loop.sh
 ```
 
+Windows ネイティブ（PowerShell）の場合:
+
+```powershell
+pwsh -File .codex/skills/pr-fix-loop/scripts/pr-fix-loop.ps1
+```
+
 - CI監視、レビュー出力検知、P0ダイジェスト、収束時の自動マージまでを 1 回分まとめて実行する。
 - 修正が必要と出た場合は 1.7〜1.11 を実施してから再実行する（最大 `MAX_ITERS` 回の考え方は維持）。
 - スクリプトが `REVIEW_P0_DIGEST` を出力するため、Codex は日本語要約を返す。
