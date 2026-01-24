@@ -60,6 +60,8 @@
 
 - **repository-structure.md** - リポジトリ構造定義書/フォルダ・ファイル構成（事実の一覧）
   - フォルダ・ファイル構成
+  - 生成/更新: `bash scripts/tree.sh`（手動編集しない）
+  - 通常は `$precommit` 内で毎回更新する
 
 - **development-guidelines.md** - 開発ガイドライン/規約と運用（命名、配置、テスト、Git、スタイル等のルール）
   - コーディング規約
@@ -77,7 +79,33 @@
   - 英語・日本語対応表
   - コード上の命名規則
 
-#### 2. 作業単位のドキュメント（`.steering/[YYYYMMDD]-[開発タイトル]/`）
+#### 2. 作業統括ドキュメント（`.steering/steering.md`）
+
+`.steering/steering.md` は、複数ターミナルによる並列開発を前提にした「作業キュー/着手順/進捗の可視化」のための統括ドキュメントです。
+
+目的:
+
+- 作業単位（`.steering/<作業ID>-.../`）の一覧化と、進捗状況の更新による可視化
+- 作業の着手順（直列/並列の関係、依存関係、着手条件）の明示
+
+運用の原則（コンフリクト抑制）:
+
+- 行の追加は原則末尾に追記する（並び替えをしない）。
+- 着手順の表現は「ID 列」と「依存関係列」で行う（ファイル上の並び替えに依存しない）。
+- 更新は原則として自分の作業行のみを変更する（頻繁な全体編集を避ける）。
+- 詳細なタスク分解/進捗は各作業ディレクトリの `tasklist.md` を一次ソースとする。
+
+推奨フォーマット（例）:
+
+- 表形式で、以下を最低限持つ:
+  - 作業ID
+  - 作業ディレクトリ（リンク）
+  - 状態（todo / doing / done など）
+  - ブランチ名
+  - 依存/着手条件（任意）
+  - 備考（任意）
+
+#### 3. 作業単位のドキュメント（`.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/`）
 
 特定の開発作業における「今回何をするか」を定義する一時的なステアリングファイル。
 作業完了後は参照用として保持されますが、新しい作業では新しいディレクトリを作成します。
@@ -99,18 +127,50 @@
   - タスクの進捗状況
   - 完了条件
 
+### ステアリング配下の構造
+
+`.steering/` 配下は以下を基本構造とします。
+
+- `.steering/steering.md`（作業統括ドキュメント）
+- `.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/`（作業単位ディレクトリ）
+
 ### ステアリングディレクトリの命名規則
 
 ```bash
-.steering/[YYYYMMDD]-[開発タイトル]/
+.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/
 ```
+
+`[作業ID]` について:
+
+- 形式: `N.M`
+  - `N`: 直列の「大きな着手順」(1, 2, 3, ...)
+  - `M`: 同一 `N` の中で並列に進められる作業の識別子 (0, 1, 2, 3, ...)
+
+- 意味づけ:
+  - 直列で進む単位作業は `1.0`, `2.0`, `3.0` のように付番する
+  - 同一フェーズ内で並列に進めたい単位作業は `1.1`, `1.2`, `1.3` のように付番する（同じ `N` を共有する）
+
+- 依存関係の一次ソースは `.steering/steering.md` に明示する（番号だけで全依存を表現しない）
+
+注意（並び順）:
+
+- OS やツールの表示順（文字列ソート）と、`N.M` の数値的な順序は一致しない場合がある。
+- 表示順は `.steering/steering.md` を一次ソースとし、着手順はそこに明記する。
+- 並び順の安定性を上げたい場合は、将来的に `01.00`, `01.01` のようなゼロ埋めを採用してもよい（採用する場合はプロジェクト内で統一する）。
 
 例:
 
-- `.steering/20250103-initial-implementation/`
-- `.steering/20250115-add-tag-feature/`
-- `.steering/20250120-fix-filter-bug/`
-- `.steering/20250201-improve-performance/`
+- 直列（単独）:
+  - `.steering/1.0-20250103-initial-implementation/`
+  - `.steering/2.0-20250115-add-tag-feature/`
+  - `.steering/3.0-20250120-fix-filter-bug/`
+
+- 並列（同一フェーズ内で分割）:
+  - `.steering/1.1-20250103-add-task-create-ui/`
+  - `.steering/1.2-20250103-add-task-list-ui/`
+  - `.steering/1.3-20250103-add-task-edit-ui/`
+  - `.steering/2.1-20250115-add-tag-schema/`
+  - `.steering/2.2-20250115-add-tag-ui/`
 
 ## 開発プロセス
 
@@ -121,40 +181,74 @@
 - 永続的ドキュメント（`docs/`）への影響を確認
 - 変更が基本設計に影響する場合は `docs/` を更新
 
-#### 2. ステアリングディレクトリ作成
+#### 2. 作業統括ドキュメント更新（`.steering/steering.md`）
+
+- `.steering/steering.md` が無ければ作成する。
+- 新しい作業を追加する際は、以下を最低限記載する:
+  - 作業ID（直列/並列の意図が分かるように）
+  - 作業ディレクトリ名（予定でもよい）
+  - 状態（todo / doing / done）
+  - ブランチ名（後述の規則に従う）
+  - 依存関係/着手条件（必要な場合）
+
+- 並列で進める作業は、衝突リスク（同一ファイル群の編集）と依存関係を明示する。
+
+#### 3. 作業ブランチ作成（単位作業と同期）
+
+原則として「1 作業単位 = 1 ブランチ」で運用します。
+
+- 作業着手（実装開始）前に、対象作業のブランチを作成して checkout する。
+- ブランチ名は原則としてステアリングの `[開発タイトル]` と一致させる（kebab-case）。
+  - 例: `add-tag-feature`
+
+- 同名ブランチが既に存在する、または識別性を上げたい場合は `[作業ID]-[開発タイトル]` などの一意な命名にする。
+  - 例: `1.2-add-tag-ui`
+
+- ブランチ作成手順は `$branch-create`（git alias 優先）を参照する。フォールバックとして `git switch -c <branch>` でもよい。
+
+注意:
+
+- 1 ブランチで複数の作業ID（複数の `.steering/<作業ID>-.../`）を同時に進めない。
+- 複数の作業を同時に進めたい場合は、作業を分割し、作業ID/作業ディレクトリ/ブランチを分ける。
+
+#### 4. ステアリングディレクトリ作成
 
 新しい作業用のディレクトリを作成します。
 
 ```bash
-mkdir -p .steering/[YYYYMMDD]-[開発タイトル]
+mkdir -p .steering/[作業ID]-[YYYYMMDD]-[開発タイトル]
 ```
 
 例:
 
 ```bash
-mkdir -p .steering/20250115-add-tag-feature
+mkdir -p .steering/1.0-20250115-add-tag-feature
 ```
 
-#### 3. 作業ドキュメント作成
+#### 5. 作業ドキュメント作成
 
 作業単位のドキュメントを作成します。
 各ドキュメント作成後、必ず確認・承認を得てから次に進みます。
 
-1. `.steering/[YYYYMMDD]-[開発タイトル]/requirements.md` - 要求内容
-2. `.steering/[YYYYMMDD]-[開発タイトル]/design.md` - 設計
-3. `.steering/[YYYYMMDD]-[開発タイトル]/tasklist.md` - タスクリスト
+1. `.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/requirements.md` - 要求内容
+2. `.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/design.md` - 設計
+3. `.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/tasklist.md` - タスクリスト
 
 重要: 1ファイルごとに作成後、必ず確認・承認を得てから次のファイル作成を行う
 
-#### 4. 永続的ドキュメント更新（必要な場合のみ）
+#### 6. 永続的ドキュメント更新（必要な場合のみ）
 
 変更が基本設計に影響する場合、該当する `docs/` 内のドキュメントを更新します。
 
-#### 5. 実装開始
+#### 7. 実装開始
 
-`.steering/[YYYYMMDD]-[開発タイトル]/tasklist.md` に基づいて実装を進めます。
+- `.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/tasklist.md` に基づいて実装を進めます。
+- `.steering/steering.md` の状態を `doing` に更新します（必要な場合）。
+- 作業中の進捗更新は以下を一次とする:
+  - 詳細: `tasklist.md`
+  - 俯瞰/状態: `steering.md`
 
-#### 6. 品質チェック
+#### 8. 品質チェック
 
 - 変更内容に応じて適切な検証を実施する（詳細は「完了条件」および skills を参照）。
 - CI/required checks を壊さない（ローカルで通せない変更は不可）。
@@ -167,6 +261,13 @@ mkdir -p .steering/20250115-add-tag-feature
 - 頻繁に更新されない
 - 大きな設計変更時のみ更新
 - プロジェクト全体の「北極星」として機能
+
+### 作業統括ドキュメント（`.steering/steering.md`）
+
+- 作業の俯瞰（着手順、並列/直列の関係、状態）を管理する
+- 作業単位ディレクトリへの導線（リンク）を担う
+- 並列開発時の衝突と依存関係の見える化に使う
+- 詳細は各作業ディレクトリ配下のドキュメントを一次ソースとする
 
 ### 作業単位のドキュメント（`.steering/`）
 
@@ -235,6 +336,7 @@ graph TD
 
 - PII/秘密情報をログ・例・コメント・テストデータ・PR本文に含めない。
   - トークン/API key/認証情報/内部URL などは出力しない。貼られている場合は伏せる。
+
 - 「設定にAPI keyが含まれるもの（例: MCP）」は特に注意し、コピペで漏らさない。
 
 ### Git / GitHub 運用
@@ -243,6 +345,7 @@ graph TD
 - GitHub 上の操作（PR 作成/コメント/CI監視/ログ取得/マージ）は原則 `gh` を使う。
 - ローカルのソース管理は `git` を使う（commit / push は `git`）。
 - 認証は `gh auth status` を前提にし、`GH_TOKEN` の常用は避ける（CI/自動化用途の一時注入は可）。
+- 原則として「1 作業単位（`.steering/<作業ID>-.../`）= 1 ブランチ = 1 PR」で運用する。
 
 ### 差分の品質
 
@@ -250,9 +353,11 @@ graph TD
 - 差分は最小にする:
   - タスクに必要なファイルのみ編集する
   - 明示的な必要がない限り repo 全体の整形はしない
+
 - `npm run fix` / `ruff check --fix` で大量差分が出た場合:
   - PR で理由を説明する、または
   - 整形のみの commit と機能変更 commit を分ける
+
 - 新しい util/型/スキーマ/共通関数を追加する前に、まず既存実装を探索する（`$dedupe` を推奨）。
 
 ### 命名規則（検索性・重複抑止）
@@ -274,12 +379,15 @@ TypeScript / Frontend:
   - `components/` 配下のファイル名は原則 `kebab-case.tsx`（例: `user-card.tsx`）。
   - shadcn/ui 由来の `components/ui/*` は既存の命名を踏襲する。
   - Next.js 固有の `page.tsx` / `layout.tsx` / `loading.tsx` 等は例外（ルーティング規約を優先）。
+
 - Hooks:
   - Hook 関数名は `useXxx`（例: `useUser`）。
   - 可能ならファイル名も `use-xxx.ts` など対応させる。
+
 - ユーティリティ関数:
   - 役割を接頭辞で統一する（例: `getXxx` / `createXxx` / `parseXxx` / `formatXxx` / `toXxx` / `isXxx` / `assertXxx`）。
   - boolean は `isXxx` / `hasXxx` を優先し、`checkXxx` のような曖昧語は避ける。
+
 - 型/スキーマ:
   - 型は `Xxx`、入力は `XxxInput`、出力は `XxxOutput`、API payload は `XxxRequest` / `XxxResponse` を優先する（既存があればそれに合わせる）。
   - Zod スキーマは `XxxSchema` の命名を優先し、`z.infer<typeof XxxSchema>` と対応させる。
@@ -307,6 +415,7 @@ Python / Backend:
   - Frontend: `__tests__/` の unit test（Jest + RTL）
   - Backend: `backend/tests/` の pytest
   - E2E: `e2e/` の Playwright（必須ではないが、重要導線は追加を検討）
+
 - 重要度は P0/P1 を優先して指摘する（必要なら `@codex review for <focus>` で観点指定）。
 
 ## 事前確認が必要な変更（勝手に進めない）
@@ -324,15 +433,30 @@ Python / Backend:
 
 ## 標準コマンド（共通）
 
-- commit 前の整形・整合チェック（必須）: `npm run precommit`
+- commit 前の標準フロー（必須）:
+  - `$precommit`
+  - `export COMMIT_MSG='type(scope): 日本語要約'`
+  - `$commit`（デフォルトで push まで行う。必要なら `PUSH=0`）
+
+- PR を作成/更新する前の標準フロー（必須）:
+  - `$document-update`（PR前のドキュメント整合。永続ファイルの不要な更新は禁止。必要最小限のみ）
+  - `$precommit`
+  - `export COMMIT_MSG='type(scope): 日本語要約'`
+  - `$commit`
+  - `$pr-flow`
+
 - PR 作成〜CI待ち（入口）: `bash scripts/pr.sh`（無い場合は `gh` でフォールバック）
+- リポジトリ構造ドキュメント更新: `bash scripts/tree.sh`（通常は `$precommit` 内で毎回実行）
 
 ## 完了条件（タスク / PR 共通）
 
 - PR を提案する前、またはタスクを「完了」とする前に、必ずフル検証を通す:
   - 詳細手順は skill `$verify-full` を使う
+
 - どれかが失敗した場合:
   - 問題を修正し、成功するまで再実行する
+
+- PR を作成/更新する前に、`$document-update` によりドキュメント整合が取れていること（必要最小限の更新のみ）。
 - Codex CLI はエディタ保存時整形を使わない前提のため、CLIチェックの通過を完了条件として重視する。
 
 ## commit メッセージ規約（日本語）
@@ -341,11 +465,12 @@ Python / Backend:
 - 形式:
   - `<type>(<scope>): <日本語の要約>`
   - scope が不要なら `<type>: <日本語の要約>`
+
 - type/scope は英字固定。要約だけ日本語。
 - 例:
   - `feat(backend): ヘルスチェックAPIを追加`
   - `fix(frontend): モバイルでボタンが切れる問題を修正`
-  - `docs: セットアップ手順を更新`
+  - `docs: ステアリング手順を更新`
   - `chore: 上記以外の修正`
 
 ## skills（手順の本体）
@@ -353,10 +478,12 @@ Python / Backend:
 このリポジトリでは、長い手順・状況依存の手順は skills に分離する。
 skills は `$<skill-name>` で呼び出す。
 
+- PR前のドキュメント整合: `$document-update`
+- プレコミット（整形/セルフレビュー/tree 更新）: `$precommit`
+- コミット（verify-full 実行後に add/commit/push）: `$commit`
 - 重複検知/統合（既存探索の標準手順）: `$dedupe`
 - PR/CI の一連フロー（push後）: `$pr-flow`
-- CI 失敗ログ抽出: `$ci-log-failed`
-- CodeRabbit 指摘の抽出と要約: `$coderabbit-digest`
+- PR/CI 指摘の修正ループ: `$pr-fix-loop`
 - 速い検証（開発ループ）: `$verify-fast`
 - フル検証（PR前/完了前）: `$verify-full`
 - ブランチ作成（git alias 優先）: `$branch-create`
@@ -364,7 +491,6 @@ skills は `$<skill-name>` で呼び出す。
 - （MCP）UI再現・スクショ・ログ収集: `$mcp-playwright-debug`
 - （MCP）安全なリファクタ（シンボル操作）: `$mcp-serena-refactor`
 - （MCP）パフォーマンス計測（DevTools）: `$mcp-chrome-devtools-perf`
-- Ruleset / required checks 運用メモ: `$ruleset-notes`
 
 補足:
 
@@ -373,11 +499,14 @@ skills は `$<skill-name>` で呼び出す。
 ## ドキュメント整形
 
 - `*.md` は Prettier の対象になり得る。
-- `AGENTS.md` や skills を編集したら `npm run precommit` を実行して整形差分を確定する。
+- `docs/repository-structure.md` は `bash scripts/tree.sh` により生成/更新する（手動編集しない）。
+- commit 前の整形・整合チェックは `$precommit` を使う（内部で `npm run precommit` を実行する）。
+- PR 前のドキュメント整合は `$document-update` を使う（永続ファイルの不要な更新は禁止。必要最小限のみ）。
 - 整形差分が大量に出る場合は、理由を PR に明記するか、整形のみの commit と機能変更 commit を分ける。
 
 ## 注意事項
 
-- ドキュメントの作成・更新は段階的に行い、各段階で承認を得る
-- `.steering/` のディレクトリ名は日付と開発タイトルで明確に識別できるようにする
-- 永続的ドキュメントと作業単位のドキュメントを混同しない
+- ドキュメントの作成・更新は段階的に行い、各段階で承認を得る。
+- `.steering/` のディレクトリ名は、`[作業ID]-[YYYYMMDD]-[開発タイトル]` で明確に識別できるようにする。
+- `.steering/steering.md` は作業の俯瞰（着手順/状態/依存関係）を一次ソースとして扱う。
+- 永続的ドキュメントと作業単位のドキュメントを混同しない。

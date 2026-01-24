@@ -9,11 +9,11 @@
 │   └── skills
 │       ├── branch-create
 │       │   └── SKILL.md
-│       ├── ci-log-failed
-│       │   └── SKILL.md
-│       ├── coderabbit-digest
+│       ├── commit
 │       │   └── SKILL.md
 │       ├── dedupe
+│       │   └── SKILL.md
+│       ├── document-update
 │       │   └── SKILL.md
 │       ├── mcp-chrome-devtools-perf
 │       │   └── SKILL.md
@@ -23,9 +23,15 @@
 │       │   └── SKILL.md
 │       ├── mcp-serena-refactor
 │       │   └── SKILL.md
+│       ├── pr-fix-loop
+│       │   └── SKILL.md
 │       ├── pr-flow
 │       │   └── SKILL.md
-│       ├── ruleset-notes
+│       ├── precommit
+│       │   └── SKILL.md
+│       ├── repo-setup
+│       │   └── SKILL.md
+│       ├── setup-tailwind-frontend
 │       │   └── SKILL.md
 │       ├── verify-fast
 │       │   └── SKILL.md
@@ -63,7 +69,9 @@
 │   ├── .project.json
 │   ├── .what-is-this.md
 │   └── history
-│       └── 2026-01-04_07-12Z-bashスクリプトの和訳.md
+│       ├── 2026-01-04_07-12Z-bashスクリプトの和訳.md
+│       ├── 2026-01-17_06-14Z-pr-フロー-skill-の-p0-処理設計.md
+│       └── 2026-01-24_03-05Z-スクリプト出力先ディレクトリ変更.md
 ├── .steering
 ├── .vscode
 │   └── settings.json
@@ -96,9 +104,10 @@
 │       ├── sonner.tsx
 │       └── textarea.tsx
 ├── components.json
-├── context
 ├── docs
 │   ├── architecture.md
+│   ├── context
+│   │   └── test_context_20260124_120747.md
 │   ├── development-guidelines.md
 │   ├── functional-design.md
 │   ├── glossary.md
@@ -130,5 +139,5 @@
 │   └── tree.sh
 └── tsconfig.json
 
-35 directories, 90 files
+38 directories, 96 files
 ```
