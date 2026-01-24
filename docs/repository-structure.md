@@ -6,6 +6,7 @@
 .
 ├── .coderabbit.yaml
 ├── .codex
+│   ├── config.toml
 │   └── skills
 │       ├── branch-create
 │       │   └── SKILL.md
@@ -140,5 +141,5 @@
 │   └── tree.sh
 └── tsconfig.json
 
-38 directories, 97 files
+38 directories, 98 files
 ```
