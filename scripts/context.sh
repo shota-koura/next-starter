@@ -16,7 +16,7 @@ set -euo pipefail
 #   bash scripts/context.sh --raw docs/ app/ lib/
 #   cat notes.txt | bash scripts/context.sh -n notes - AGENTS.md
 
-OUT_DIR="context"
+OUT_DIR="docs/context"
 NAME="context"
 RAW="0"
 INCLUDE_HIDDEN="0"

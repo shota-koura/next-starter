@@ -55,4 +55,4 @@ playwright-report/
 .specstory/
 
 # context
-context
+docs/context/

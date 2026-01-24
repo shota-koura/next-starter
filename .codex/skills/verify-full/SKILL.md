@@ -1,6 +1,6 @@
 ---
 name: verify-full
-description: PR前/タスク完了前のフル検証を実行する（frontend: fix+check / backend: ruff+pyright+pytest / 必要に応じてe2e）
+description: 'PR前/タスク完了前のフル検証を実行する（frontend: fix+check / backend: ruff+pyright+pytest / 必要に応じてe2e）'
 ---
 
 ## 目的
