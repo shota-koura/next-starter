@@ -24,6 +24,18 @@ description: CodeRabbit/Codexの行コメント（P0）とCI失敗ログを抽�
   - `$verify-fast`（必須）
   - `$verify-full`（任意: 最終確認で推奨）
 
+## 1コマンド実行（推奨・1反復）
+
+次を実行する。
+
+```bash
+bash .codex/skills/pr-fix-loop/scripts/pr-fix-loop.sh
+```
+
+- CI監視、レビュー出力検知、P0ダイジェスト、収束時の自動マージまでを 1 回分まとめて実行する。
+- 修正が必要と出た場合は 1.7〜1.11 を実施してから再実行する（最大 `MAX_ITERS` 回の考え方は維持）。
+- スクリプトが `REVIEW_P0_DIGEST` を出力するため、Codex は日本語要約を返す。
+
 ## 環境変数
 
 - `POLL_SEC`
@@ -71,7 +83,7 @@ description: CodeRabbit/Codexの行コメント（P0）とCI失敗ログを抽�
 
 - 各ループで必ず `@codex review in Japanese` と `@coderabbitai review` を投稿する。
 
-## 実行手順
+## 実行手順（手動）
 
 ### 0) 現在状態とPR情報の確認
 
