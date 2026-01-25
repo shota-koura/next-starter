@@ -1,7 +1,14 @@
 # ~/.codex/config.toml
 
 approval_policy = "never"
-sandbox_mode = "workspace-write"
+sandbox_mode    = "danger-full-access"
 
 [sandbox_workspace_write]
 network_access = true
+
+[features]
+collaboration_modes = true
+shell_snapshot = true
+unified_exec = true
+web_search_request = true
+apply_patch_freeform = true
