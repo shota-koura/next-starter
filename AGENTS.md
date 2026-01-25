@@ -490,21 +490,25 @@ Python / Backend:
 ## skills（手順の本体）
 
 このリポジトリでは、長い手順・状況依存の手順は skills に分離する。
-skills は `$<skill-name>` で呼び出す。
 
-- PR前のドキュメント整合: `$document-update`
-- プレコミット（整形/セルフレビュー/tree 更新）: `$precommit`
-- コミット（verify-full 実行後に add/commit/push）: `$commit`
-- 重複検知/統合（既存探索の標準手順）: `$dedupe`
-- PR/CI の一連フロー（push後）: `$pr-flow`
-- PR/CI 指摘の修正ループ: `$pr-fix-loop`
-- 速い検証（開発ループ）: `$verify-fast`
-- フル検証（PR前/完了前）: `$verify-full`
-- ブランチ作成（git alias 優先）: `$branch-create`
-- （MCP）ドキュメント参照: `$mcp-context7-docs`
-- （MCP）UI再現・スクショ・ログ収集: `$mcp-playwright-debug`
-- （MCP）安全なリファクタ（シンボル操作）: `$mcp-serena-refactor`
-- （MCP）パフォーマンス計測（DevTools）: `$mcp-chrome-devtools-perf`
+- PR前のドキュメント整合: `document-update`
+- プレコミット（整形/セルフレビュー/tree 更新）: `precommit`
+- コミット（verify-full 実行後に add/commit/push）: `commit`
+- 重複検知/統合（既存探索の標準手順）: `dedupe`
+- PR/CI の一連フロー（push後）: `pr-flow`
+- 速い検証（開発ループ）: `verify-fast`
+- フル検証（PR前/完了前）: `verify-full`
+
+### ブランチ運用
+
+- ブランチ作成（自動命名・質問なし。steering優先）: `branch-create`
+
+### MCP 連携（任意・環境依存）
+
+- （MCP）ドキュメント参照: `mcp-context7-docs`
+- （MCP）UI再現・スクショ・ログ収集: `mcp-playwright-debug`
+- （MCP）安全なリファクタ（シンボル操作）: `mcp-serena-refactor`
+- （MCP）パフォーマンス計測（DevTools）: `mcp-chrome-devtools-perf`
 
 補足:
 

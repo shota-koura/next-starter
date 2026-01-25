@@ -1,321 +1,183 @@
 ---
 name: pr-flow
-description: push後にPR作成/表示、@codex review/投稿、CIとレビュー出力をポーリング監視、行コメントのダイジェスト表示と日本語要約、問題がなければ自動マージまでを gh で実行する（修正が必要なら pr-fix-loop に委譲）
+description: push後にPR作成/表示、@codex・CodeRabbitレビュー依頼、CIとレビュー出力を120秒毎にポーリング監視（上限なし）。双方のレビュー完了後に指摘内容を統一フォーマットで整理して提示し、修正要否を確認。必要に応じて修正→verify→push→再レビュー/CI を繰り返し、条件を満たせば自動マージまで完結。
 ---
+
+# PR Flow
 
 ## 目的
 
-- push 後の「PR 作成〜レビュー起動〜CI監視〜（必要なら）修正ループ〜自動マージ」までを、Web UI に依存せずターミナルで完結させる。
-- 差分最小・CI安定・レビューしやすさを優先する。
-- レビュー内容は P0 として「行コメント（PR review comments）」のみを一次ソースとし、Conversation の summary/walkthrough は検知用途に限定する。
+- `git push` 後の「PR作成/取得 → レビュー起動 → CI監視 → レビュー監視 → 指摘整理 → 修正要否確認 →（必要に応じて）修正ループ → 自動マージ」までを、GitHub Web UI に依存せずに完結させる。
+- Codex と CodeRabbit（行コメント/レビュー）の**両方が完了**するまで監視し続ける（120秒間隔・上限なし）。
+- 指摘を統一フォーマットで提示し、ユーザーに「どれを直すか」を選ばせる。
+- P0 は必須修正。P1/P2 はユーザー判断。
 
 ## いつ使うか
 
-- `git push` した直後（または push 済みブランチで PR を作りたい/状態を確認したいとき）。
-- PR を開いて CI とレビューを待ち、`@codex review` を投げたいとき。
-- CI とレビューが未開始でも、そのままポーリングで待ち続けたいとき。
+- `git push` 直後に、PR作成からマージまでを一気通貫で進めたいとき。
+- PR は既にあるが、CI/レビュー完了を待って整理・判断・修正まで回したいとき。
+- CIやレビューが未開始でも、開始されるまで含めて監視し続けたいとき。
 
-## 前提
+## 前提条件（満たせない場合は「停止＋不足条件の提示」）
 
-- main/master への直接 push はしない（作業ブランチ前提）。
-- `gh auth status` が通ること。
-- `scripts/pr.sh` がある場合はそれを優先して使う（無い場合はフォールバック手順）。
+- 作業ブランチ上（`main` / `master` 直上で実行しない）。
+- `gh auth status` が成功する。
+- `jq` が利用可能。
 
-## 1コマンド実行（推奨）
+## 入力（暗黙）
 
-次を実行する。
+- 現在のブランチ（`git rev-parse --abbrev-ref HEAD`）
+- 現在のHEAD（`git rev-parse HEAD`）
+- 対象PR（存在すればそれ、無ければ作成）
 
-```bash
-bash .codex/skills/pr-flow/scripts/pr-flow.sh
-```
+## 出力（ユーザーに提示するもの）
 
-Windows ネイティブ（PowerShell）の場合:
-
-```powershell
-pwsh -File .codex/skills/pr-flow/scripts/pr-flow.ps1
-```
-
-- このスクリプトが本ファイルの手順をまとめて実行する。
-- スクリプトは `REVIEW_P0_DIGEST` を出力するため、Codex が日本語要約を返す。
-- 失敗した場合は「実行手順（手動）」に従う。
-
-## 運用ポリシー
-
-- CI とレビュー監視はユーザーへの確認なしで継続する。
-  - pending のまま、または未開始（チェック0件・レビュー0件）でも待ち続ける。
-- `gh` コマンドの一時的な失敗（通信・API揺れ等）が起きても自動で再試行する。
-- 停止条件は次のいずれかのみ。
-  - ユーザーが明示的に停止を指示した
-  - 修正が必要（CI fail またはレビュー行コメントあり）になったので `pr-fix-loop` に委譲した
+- PR URL / 番号 / base / head / 最新SHA
+- CIサマリー（成功/失敗/未開始、失敗時は失敗チェック一覧とリンク）
+- レビュー完了判定（Codex/CodeRabbitそれぞれの最新レビュー出力の有無）
+- 指摘一覧（統一フォーマット）
+- 「修正対応する指摘事項を教えてください」の質問
+- 収束後の自動マージ結果（または `AUTO_MERGE=0` の場合はコマンド提示）
 
 ## 環境変数
 
-必要なら実行前に設定する（未設定ならデフォルトで進む）。
+- `BASE_BRANCH`: PRのベースブランチ（既定 `main`）
+- `POLL_SEC_REVIEW`: ポーリング間隔（既定 `120`）
+- `AUTO_MERGE`: 収束後に自動マージするか（既定 `1`。`0` の場合はコマンド提示のみ）
+- `REVIEW_SINCE`: レビュー開始時刻の下限（ISO8601等）。未指定なら「このフロー開始以降」を基準にする
 
-- `BASE_BRANCH`
-  - PRのbaseブランチ。デフォルト `main`
-- `POLL_SEC`
-  - CIポーリング間隔（秒）。デフォルト `30`
-- `POLL_SEC_REVIEW`
-  - レビュー検知ポーリング間隔（秒）。デフォルト `30`
-- `AUTO_MERGE`
-  - 問題が無い場合に自動マージを実行するか。デフォルト `1`。`0` でマージしない（コマンド提示のみ）
+## ガードレール（全工程で常に優先）
 
-## 実行手順（手動）
+- 無関係な整形/リファクタは禁止（差分最小）。
+- 禁止領域に触れる必要が出たら停止し、理由と必要な人手判断を提示する。
+  - `.github/**`（特に workflows）
+  - `.coderabbit.yaml` / `.coderabbit.yml`
+  - 依存・ロック系（例: `package.json`, `pnpm-lock.yaml`, `yarn.lock`, `pyproject.toml`, `poetry.lock`, `requirements*.txt`）
+  - `.env*` 等の環境変数ファイル
 
-### 0) 現在状態を通知
+## 実行フロー（状態機械）
 
-```bash
-BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-SHA="$(git rev-parse --short HEAD)"
-echo "[OK] ブランチ: $BRANCH $SHA"
+以下を順に実行し、条件未達なら同ステップをポーリングで継続する。
 
-if [[ "$BRANCH" == "main" || "$BRANCH" == "master" ]]; then
-  echo "[ERROR] main/master 上です。作業ブランチへ切り替えてください。"
-  exit 1
-fi
-```
+### Step 0: 事前チェック
 
-### 1) PR 作成 or 表示
+- ブランチが `main/master` なら停止して「作業ブランチへ切替」を指示。
+- `gh auth status` / `jq` を確認し、不足があれば停止して導入手順を提示。
 
-```bash
-if [[ -f scripts/pr.sh ]]; then
-  bash scripts/pr.sh
-else
-  echo "[INFO] scripts/pr.sh not found -> fallback with gh"
-  BASE_BRANCH="${BASE_BRANCH:-main}"
-  BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-  gh pr view "$BRANCH" >/dev/null 2>&1 || gh pr create --fill --base "$BASE_BRANCH" --head "$BRANCH"
-fi
+### Step 1: PR を「取得または作成」
 
-gh pr view --json number,title,url,isDraft --jq '"[OK] PR: #\(.number) \(.title)\n\(.url)\n[INFO] isDraft=\(.isDraft)"'
-```
+- 既存PRがあればそれを採用。
+- 無ければ `BASE_BRANCH` を base として新規作成。
+- 以降は PR 番号/URL を固定して追跡する。
 
-### 2) レビュー依頼コメントを投稿（毎回）
+### Step 2: レビュー依頼を投稿（Codex / CodeRabbit）
 
-```bash
-gh pr comment --body "@codex review in Japanese"
-echo "[OK] レビュー依頼: \"@codex review in Japanese\" を投稿"
-```
+- PR へコメントを投稿してレビューを起動する（運用に合わせて文言は最小）。
+- この時点の時刻を `REVIEW_SINCE`（内部基準）として記録し、「今回フローでのレビュー出力」を判定する下限に使う。
 
-### 3) CI を監視
+### Step 3: CI 監視（120秒ポーリング・上限なし）
 
-`--watch` を使わず、短い `gh pr checks` を繰り返すポーリングで待つ。
+- `gh pr checks` 等で状態を取得し、以下に分類する。
+  - `success`: すべて成功
+  - `fail`: 失敗が1つ以上
+  - `pending`: 実行中/未開始/待ち
+- `fail` の場合は「失敗チェック名・URL」を列挙する（可能なら直近ログも要約して添付）。
+- `pending` の場合は 120 秒待って再取得（上限なし）。
+- `success` になったら Step 4 へ。
 
-```bash
-echo "[WAIT] CI: チェックをポーリング中..."
+### Step 4: レビュー監視（120秒ポーリング・上限なし）
 
-POLL_SEC="${POLL_SEC:-30}"
+- Codex と CodeRabbit の**双方**について「今回基準（REVIEW_SINCE以降）でのレビュー出力が揃ったか」を判定する。
+- 判定対象（いずれも PR 上の出力を収集）:
+  - Codex: PRコメント（またはレビューサマリー相当）
+  - CodeRabbit: 行コメント（review comments）
+- 片方でも未完了なら 120 秒待って再取得（上限なし）。
+- 両方完了したら Step 5 へ。
 
-SCOPE="--required"
-REQ_TOTAL="$(gh pr checks $SCOPE --json bucket --jq 'length' 2>/dev/null || true)"
-if [[ -z "$REQ_TOTAL" || "$REQ_TOTAL" == "0" ]]; then
-  SCOPE=""
-fi
+### Step 5: 指摘の抽出・正規化・重複統合
 
-while true; do
-  TSV="$(gh pr checks $SCOPE --json bucket --jq '
-    [
-      length,
-      ([.[]|select(.bucket=="pass")]|length),
-      ([.[]|select(.bucket=="skipping")]|length),
-      ([.[]|select(.bucket=="pending")]|length),
-      ([.[]|select(.bucket=="cancel")]|length),
-      ([.[]|select(.bucket=="fail")]|length)
-    ] | @tsv
-  ' 2>/dev/null || true)"
+- 入力ソースを統合して「指摘（Finding）」として正規化する。
+  - 同一内容の重複（同エージェント/近い文言/同箇所）は統合し、URLは併記する。
 
-  if [[ -z "$TSV" ]]; then
-    echo "[INFO] CI: 取得失敗(一時) -> リトライ"
-    sleep "$POLL_SEC"
-    continue
-  fi
+### Step 6: 懸念レベル（P0/P1/P2）分類
 
-  IFS=$'\t' read -r TOTAL PASS SKIP PEND CANCEL FAIL <<<"$TSV"
+- Codex:
+  - 本文先頭に `P0/P1/P2` がある場合はそれを採用。
+  - 無い場合は内容から推定し、重大（壊れる/セキュリティ/データ破壊/テスト失敗誘発）はP0、改善提案はP1、軽微はP2。
+- CodeRabbit:
+  - "Potential issue" 系の severity を優先して写像する。
+    - Critical → P0
+    - Major → P1
+    - Minor/Trivial/Info → P2
+  - それ以外はP2（ただしビルド破壊/明確なバグはP0へ引き上げ可）
 
-  if [[ "$TOTAL" -eq 0 ]]; then
-    echo "[INFO] CI: 未開始 -> リトライ"
-    sleep "$POLL_SEC"
-    continue
-  fi
+### Step 7: 指摘一覧の提示（統一フォーマット）
 
-  echo "[INFO] CI: total=$TOTAL pass=$PASS skip=$SKIP pending=$PEND cancel=$CANCEL fail=$FAIL"
-
-  if [[ "$FAIL" -gt 0 ]]; then
-    echo "[ERROR] CI: 失敗を検知"
-    gh pr checks $SCOPE --json name,bucket,state,link --jq \
-      '.[] | select(.bucket=="fail") | "- \(.name) (\(.state)) \(.link)"'
-    echo "[INFO] 修正ループへ委譲: \$pr-fix-loop"
-    exit 0
-  fi
-
-  if [[ "$PEND" -eq 0 && "$CANCEL" -eq 0 ]]; then
-    echo "[OK] CI: 全チェック完了"
-    break
-  fi
-
-  sleep "$POLL_SEC"
-done
-```
-
-### 4) レビュー出力を検知し、行コメントの機械的ダイジェストを表示
-
-- 目的: 「レビューが動いた」ことを確認しつつ、一次ソースは行コメント（PR review comments）だけに限定する。
-- Conversation の summary/walkthrough は検知用途のみ（タスク化しない）。
-
-#### 4.1) レビューが動いたことの検知（HEADに紐づく Review/行コメント、または会話コメント）
-
-```bash
-echo "[WAIT] Review: 出力を検知するまでポーリング中..."
-
-POLL_SEC_REVIEW="${POLL_SEC_REVIEW:-30}"
-REPO="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
-PR_NUM="$(gh pr view --json number --jq .number)"
-
-while true; do
-  HEAD_SHA="$(gh pr view --json headRefOid --jq .headRefOid)"
-  HEAD_TIME="$(gh api "repos/$REPO/commits/$HEAD_SHA" --jq .commit.committer.date 2>/dev/null || true)"
-
-  ISSUE_CNT=""
-  if [[ -n "$HEAD_TIME" ]]; then
-    ISSUE_CNT="$(gh api "repos/$REPO/issues/$PR_NUM/comments" --paginate --jq \
-      '[.[]
-        | select(.user.login | test("coderabbit|chatgpt-codex-connector|codex"; "i"))
-        | select((.created_at | fromdateiso8601) >= ("'"$HEAD_TIME"'" | fromdateiso8601))
-      ] | length' 2>/dev/null || true)"
-  fi
-
-  REVIEWS_HEAD_CNT="$(gh api "repos/$REPO/pulls/$PR_NUM/reviews" --paginate --jq \
-    '[.[]
-      | select(.user.login | test("coderabbit|chatgpt-codex-connector|codex"; "i"))
-      | select((.commit_id // "") == "'"$HEAD_SHA"'")
-    ] | length' 2>/dev/null || true)"
-
-  LINE_HEAD_CNT="$(gh api "repos/$REPO/pulls/$PR_NUM/comments" --paginate --jq \
-    '[.[]
-      | select(.user.login | test("coderabbit|chatgpt-codex-connector|codex"; "i"))
-      | select(.commit_id == "'"$HEAD_SHA"'")
-    ] | length' 2>/dev/null || true)"
-
-  if [[ -z "$ISSUE_CNT" || -z "$REVIEWS_HEAD_CNT" || -z "$LINE_HEAD_CNT" ]]; then
-    echo "[INFO] Review: 取得失敗(一時) -> リトライ"
-    sleep "$POLL_SEC_REVIEW"
-    continue
-  fi
-
-  echo "[INFO] Review: head=$HEAD_SHA issue=$ISSUE_CNT reviews(head)=$REVIEWS_HEAD_CNT line(head)=$LINE_HEAD_CNT"
-
-  if [[ "$ISSUE_CNT" != "0" || "$REVIEWS_HEAD_CNT" != "0" || "$LINE_HEAD_CNT" != "0" ]]; then
-    echo "[OK] Review: 出力を検知"
-    break
-  fi
-
-  sleep "$POLL_SEC_REVIEW"
-done
-```
-
-#### 4.2) 行コメント（P0）の件数確認とダイジェスト表示（一次ソース）
-
-```bash
-REPO="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
-PR_NUM="$(gh pr view --json number --jq .number)"
-HEAD_SHA="$(gh pr view --json headRefOid --jq .headRefOid)"
-
-LINE_CNT_HEAD="$(gh api "repos/$REPO/pulls/$PR_NUM/comments" --paginate --jq \
-  '[.[]
-    | select(.user.login | test("coderabbit|chatgpt-codex-connector|codex"; "i"))
-    | select(.commit_id == "'"$HEAD_SHA"'")
-  ] | length' 2>/dev/null || true)"
-
-echo "[INFO] Review(P0): head=$HEAD_SHA line_comments=$LINE_CNT_HEAD"
-
-if [[ "$LINE_CNT_HEAD" != "0" ]]; then
-  echo "[INFO] Review(P0) digest:"
-  echo "----- BEGIN REVIEW_P0_DIGEST -----"
-  gh api "repos/$REPO/pulls/$PR_NUM/comments" --paginate --jq '
-    .[]
-    | select(.user.login | test("coderabbit|chatgpt-codex-connector|codex"; "i"))
-    | select(.commit_id == "'"$HEAD_SHA"'")
-    | "- \(.path):\((.line // .original_line // 0)|tostring) [\(.user.login)] \(.body | gsub("\r?\n"; " ") | .[:160])\n  \(.html_url)"
-  '
-  echo "----- END REVIEW_P0_DIGEST -----"
-else
-  echo "[OK] Review(P0): 行コメントなし（修正要求なしの可能性）"
-fi
-```
-
-#### 4.3) 意味的要約（Codexが日本語で実施）
-
-4.2 の実行結果（`BEGIN REVIEW_P0_DIGEST` から `END REVIEW_P0_DIGEST` まで）を入力として、以下の形式で日本語要約をターミナルに必ず出力する。
-
-- 制約: 10行以内、推測禁止、同じ指摘は統合する。
-
-出力テンプレート:
+- 表ではなく、指摘ごとに以下の形式で列挙する（No. は通し番号）。
 
 ```text
-要約（日本語）:
-- 結論: <1行>
-- 高: <file>: <1行>（最大2件）
-- 中: <file>: <1行>（最大2件）
-- 低: <file>: <1行>（最大2件）
+- No.:
+- 懸念レベル: P0|P1|P2
+- レビュータイトル: （短い要約。無ければ自動生成）
+- レビュー内容: （要点。必要なら箇条書き）
+- 参照: file:line / URL（あれば）
+- 見解: （あなたの見解）
 ```
 
-注意:
+### Step 8: ユーザーに修正対象を確認
 
-- `Review(P0): 行コメントなし` の場合は、要約は `結論: 指摘なし` の1行だけでよい。
+- 以下を必ず提示して入力を待つ。
 
-### 5) 分岐（修正が必要なら委譲、不要なら自動マージ）
+```text
+修正対応する指摘事項を教えてください。
 
-- `LINE_CNT_HEAD > 0` の場合:
-  - 修正が必要。次に `$pr-fix-loop` を実行して「拾う→修正→push→再レビュー/CI→収束→自動マージ」まで委譲する。
-- `LINE_CNT_HEAD == 0` かつ CI が成功している場合:
-  - `AUTO_MERGE=1` なら自動マージを実行する。
-
-```bash
-AUTO_MERGE="${AUTO_MERGE:-1}"
-
-# ここで必ず再計算（bashブロック間で変数が引き継がれない前提）
-REPO="$(gh repo view --json nameWithOwner --jq .nameWithOwner)"
-PR_NUM="$(gh pr view --json number --jq .number)"
-HEAD_SHA="$(gh pr view --json headRefOid --jq .headRefOid)"
-
-LINE_CNT_HEAD="$(gh api "repos/$REPO/pulls/$PR_NUM/comments" --paginate --jq \
-  '[.[]
-    | select(.user.login | test("coderabbit|chatgpt-codex-connector|codex"; "i"))
-    | select(.commit_id == "'"$HEAD_SHA"'")
-  ] | length' 2>/dev/null || true)"
-
-if [[ -z "$LINE_CNT_HEAD" ]]; then
-  echo "[ERROR] Review(P0): 行コメント件数の取得に失敗しました。再実行してください。"
-  exit 1
-fi
-
-if [[ "$LINE_CNT_HEAD" != "0" ]]; then
-  echo "[INFO] 修正が必要。次に \$pr-fix-loop を実行してください。"
-  exit 0
-fi
-
-IS_DRAFT="$(gh pr view --json isDraft --jq .isDraft)"
-if [[ "$IS_DRAFT" == "true" ]]; then
-  echo "[ERROR] PRがDraftです。Ready for reviewにしてから再実行してください。"
-  exit 1
-fi
-
-if [[ "$AUTO_MERGE" == "1" ]]; then
-  echo "[OK] 自動マージを設定します:"
-  gh pr merge --auto --squash --delete-branch
-else
-  echo "[INFO] AUTO_MERGE=0 のためマージは実行しません。"
-  echo "Suggested:"
-  echo "  gh pr merge --auto --squash --delete-branch"
-fi
+対応方法:
+- P0 はデフォルトで修正対象です。
+- P1/P2 で対応するものがあれば No. を指定してください（例: 2,5）。
 ```
 
-## 完了条件
+- ユーザー入力の解釈:
+  - `対応なし` かつ P0=0件 → Step 10（自動マージ）
+  - それ以外 → Step 9（修正ループ）
 
-- PRが作成/表示できている。
-- `@codex review in Japanese` を投稿している。
-- CI が成功している（fail の場合は `pr-fix-loop` に委譲して停止）。
-- レビュー出力を検知し、P0（行コメント）のダイジェストを表示し、Codexが日本語で意味的要約を表示している。
-- P0行コメントが無い場合は `gh pr merge --auto --squash --delete-branch` を実行している（AUTO_MERGE=1）。
-- P0行コメントがある場合は `pr-fix-loop` に委譲している。
+### Step 9: 修正ループ（上限なし）
+
+- 対象: P0 全件 + ユーザー指定 No.
+
+- ループの基本形:
+  1. 対象指摘に対して最小差分で修正
+  2. ガードレール検査（許可範囲外/禁止領域変更があれば停止）
+  3. `$verify-fast` を成功させる（成功するまでローカルで修正を続ける）
+  4. commit→ push
+  5. Step 2（再レビュー依頼）→ Step 3（CI）→ Step 4（レビュー）へ戻す
+  6. 新しい指摘が出たら Step 5 以降を再実行し、再度ユーザー判断を取る
+
+- 収束判定:
+  - CI: success
+  - P0: 0件
+  - ユーザー指定の P1/P2: 0件（または対応済み）
+  - 満たせば Step 10 へ
+
+### Step 10: 自動マージ
+
+- 条件（全て満たす）:
+  - CI が success
+  - P0 が 0件
+  - 対応指定が残っていない
+
+- `AUTO_MERGE=1` の場合:
+  - `gh pr merge --auto --squash --delete-branch` を実行
+
+- `AUTO_MERGE=0` の場合:
+  - 上記コマンドを提示して終了
+
+## 例外処理（必ず守る）
+
+- `gh` が一時的に失敗（API揺れ/ネットワーク）:
+  - エラー内容を短く表示し、同ステップを再試行（ポーリングに合流）。
+
+- CI が長時間 `pending`:
+  - 120秒ごとに継続監視（上限なし）。ユーザー確認なしで続行。
+
+- ガードレール違反が必要になった:
+  - commit/push せず停止。変更が必要な理由・該当ファイル・代替案を提示し、ユーザー判断を仰ぐ。
