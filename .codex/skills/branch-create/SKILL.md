@@ -69,10 +69,15 @@ fi
 REMOTE="${REMOTE:-origin}"
 BASE_BRANCH="${BASE_BRANCH:-main}"
 
-# BASE_BRANCH が無ければ main にフォールバック（質問しない）
+# BASE_BRANCH が無ければ main/master にフォールバック（質問しない）
 if ! git show-ref --verify --quiet "refs/heads/${BASE_BRANCH}"; then
   if git show-ref --verify --quiet "refs/heads/main"; then
     BASE_BRANCH="main"
+  elif git show-ref --verify --quiet "refs/heads/master"; then
+    BASE_BRANCH="master"
+  else
+    echo "[ERROR] base branch not found. Set BASE_BRANCH explicitly."
+    exit 1
   fi
 fi
 
