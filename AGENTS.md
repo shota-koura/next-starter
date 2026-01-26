@@ -496,6 +496,9 @@ Python / Backend:
 - コミット（verify-full 実行後に add/commit/push）: `commit`
 - 重複検知/統合（既存探索の標準手順）: `dedupe`
 - PR/CI の一連フロー（push後）: `pr-flow`
+- 初期セットアップ（Frontend/Backend/ツール検知）: `repo-setup`
+- Tailwind CSS v4 の導入: `setup-tailwind-frontend`
+- skills 棚卸し提案の作成: `skills-retro`
 - 速い検証（開発ループ）: `verify-fast`
 - フル検証（PR前/完了前）: `verify-full`
 
