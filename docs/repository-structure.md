@@ -27,16 +27,8 @@
 │       │   └── SKILL.md
 │       ├── mcp-serena-refactor
 │       │   └── SKILL.md
-│       ├── pr-fix-loop
-│       │   ├── SKILL.md
-│       │   └── scripts
-│       │       ├── pr-fix-loop.ps1
-│       │       └── pr-fix-loop.sh
 │       ├── pr-flow
-│       │   ├── SKILL.md
-│       │   └── scripts
-│       │       ├── pr-flow.ps1
-│       │       └── pr-flow.sh
+│       │   └── SKILL.md
 │       ├── precommit
 │       │   ├── SKILL.md
 │       │   └── scripts
@@ -90,7 +82,6 @@
 ├── .prettierignore
 ├── .prettierrc
 ├── .specstory
-│   ├── .project.json
 │   ├── .what-is-this.md
 │   └── history
 │       ├── 2026-01-04_07-12Z-bashスクリプトの和訳.md
@@ -163,5 +154,5 @@
 │   └── tree.sh
 └── tsconfig.json
 
-46 directories, 112 files
+43 directories, 106 files
 ```
