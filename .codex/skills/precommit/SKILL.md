@@ -6,7 +6,7 @@ description: commit 前の整形・整合チェックとセルフレビュー、
 ## 目的
 
 - commit 前に、整形・静的チェックを一連で実施して差分品質を上げる。
-- `docs/repository-structure.md` を最新化して、リポジトリ構造ドキュメントの陳腐化を防ぐ（毎回実行）。
+- `docs/development/permanent/repository-structure.md` を最新化して、リポジトリ構造ドキュメントの陳腐化を防ぐ（毎回実行）。
 
 ## いつ使うか
 
@@ -59,7 +59,7 @@ npm run precommit
 
 ### 2) リポジトリ構造ドキュメントの更新（毎回）
 
-`docs/repository-structure.md` は生成物として扱い、手動編集しない。
+`docs/development/permanent/repository-structure.md` は生成物として扱い、手動編集しない。
 
 ```bash
 bash scripts/tree.sh
@@ -107,5 +107,5 @@ $commit
 ## 完了条件
 
 - `npm run precommit` が成功している。
-- `bash scripts/tree.sh` により `docs/repository-structure.md` が最新化されている。
+- `bash scripts/tree.sh` により `docs/development/permanent/repository-structure.md` が最新化されている。
 - 差分が意図通りで、次に `$commit` へ進める状態になっている。

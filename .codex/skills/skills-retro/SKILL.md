@@ -1,6 +1,6 @@
 ---
 name: skills-retro
-description: push/一区切り後に Codex セッション履歴と現行 skills を棚卸しし、追加/改修候補を docs/recomend-skills/ に提案書として出力する
+description: push/一区切り後に Codex セッション履歴と現行 skills を棚卸しし、追加/改修候補を docs/development/recomend-skills/ に提案書として出力する
 metadata:
   short-description: skill提案の自動生成（提案書のみ）
 ---
@@ -21,12 +21,12 @@ metadata:
 
 ## 出力先
 
-- 既定: `docs/recomend-skills/`
+- 既定: `docs/development/recomend-skills/`
 - ここに「提案書Markdown」を出力する。
 
 ## 環境変数（任意）
 
-- OUTPUT_DIR: 出力先（デフォルト `docs/recomend-skills`）
+- OUTPUT_DIR: 出力先（デフォルト `docs/development/recomend-skills/`）
 - LOOKBACK_HOURS: 履歴の対象時間（デフォルト `24`）
 - MAX_PROPOSALS: 提案上限（デフォルト `5`）
 - SESSION_ID: 対象セッションを明示したい場合（無ければ “このrepoの直近” を推定）
@@ -45,7 +45,7 @@ metadata:
 ### 0) repo root と出力先の確認
 
 - `git rev-parse --show-toplevel` で repo root を取得する。
-- `OUTPUT_DIR`（デフォルト `docs/recomend-skills`）を `mkdir -p` で作る。
+- `OUTPUT_DIR`（デフォルト `docs/development/recomend-skills/`）を `mkdir -p` で作る。
 
 ### 1) 既存 skills の棚卸し（必須）
 
@@ -84,7 +84,7 @@ metadata:
   - 望ましい変更点（最小差分）
   - その理由（履歴上の詰まり/重複/抜け）
 
-### 5) docs/recomend-skills/ に Markdown 出力
+### 5) docs/development/recomend-skills/ に Markdown 出力
 
 - ファイル名: `YYYYMMDD_HHMM__skills-retro.md`
 - `SPLIT_FILES=1` の場合:
@@ -96,7 +96,7 @@ metadata:
 
 - `git status -sb` で提案書だけが増えていることを確認して終了。
 
-## 提案書（docs/recomend-skills）のテンプレ例
+## 提案書（docs/development/recomend-skills/）のテンプレ例
 
 提案書は “後で採用して skill に落とす” のが目的なので、最低限これがあると運用が回ります。
 

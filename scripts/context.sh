@@ -5,7 +5,7 @@ set -euo pipefail
 # Supports recursive directory inputs.
 #
 # Output:
-#   context/<name>_<YYYYMMDD_HHMMSS>.md
+#   docs/development/context/<name>_<YYYYMMDD_HHMMSS>.md
 #
 # Usage:
 #   bash scripts/context.sh [options] <path1|-> <path2> ...
@@ -16,7 +16,7 @@ set -euo pipefail
 #   bash scripts/context.sh --raw docs/ app/ lib/
 #   cat notes.txt | bash scripts/context.sh -n notes - AGENTS.md
 
-OUT_DIR="docs/context"
+OUT_DIR="docs/development/context"
 NAME="context"
 RAW="0"
 INCLUDE_HIDDEN="0"

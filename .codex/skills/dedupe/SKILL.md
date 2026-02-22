@@ -7,7 +7,7 @@ description: 既存実装の見落としによる重複（関数/型/スキー�
 
 - 既存実装の見落としによる「同じような関数/型/スキーマ/ユーティリティの増殖」を防ぐ。
 - 追加前に ripgrep (`rg`) で横断検索し、追記/統合を優先する。
-- 作業着手前に `docs/repository-structure.md` を参照して配置候補を把握し、重複探索の精度を上げる。
+- 作業着手前に `docs/development/permanent/repository-structure.md` を参照して配置候補を把握し、重複探索の精度を上げる。
 
 ## いつ使うか
 
@@ -19,7 +19,7 @@ description: 既存実装の見落としによる重複（関数/型/スキー�
 
 - `rg` が利用できること（`rg --version`）。
 - リポジトリ root で実行する。
-- `docs/repository-structure.md` が存在し、必要に応じて `bash scripts/tree.sh` で更新できること。
+- `docs/development/permanent/repository-structure.md` が存在し、必要に応じて `bash scripts/tree.sh` で更新できること。
   - `tree` は `scripts/codex-setup.sh` により利用可能になっている想定。
 
 ## 入力
@@ -31,17 +31,17 @@ description: 既存実装の見落としによる重複（関数/型/スキー�
 
 ### 0) リポジトリ構造の参照（必須）
 
-作業開始前に `docs/repository-structure.md` を参照して、置き場所の当たりを付ける。
+作業開始前に `docs/development/permanent/repository-structure.md` を参照して、置き場所の当たりを付ける。
 
 ```bash
-sed -n '1,200p' docs/repository-structure.md
+sed -n '1,200p' docs/development/permanent/repository-structure.md
 ```
 
 構造変更（新規/移動/改名/削除）を伴う作業のときは、最初に更新してから参照してよい（同じならdiffは出ない）。
 
 ```bash
 bash scripts/tree.sh
-git diff -- docs/repository-structure.md
+git diff -- docs/development/permanent/repository-structure.md
 ```
 
 ### 1) 追加前の探索（必須）
@@ -106,7 +106,7 @@ find . -type f -iname '*keyword*'
   - 主要な export 名とファイル名を対応させる（探しやすくする）。
 
 - 配置:
-  - 手順0で参照した `docs/repository-structure.md` に沿って、既存の“置き場”へ入れる（新しい置き場を増やさない）。
+  - 手順0で参照した `docs/development/permanent/repository-structure.md` に沿って、既存の“置き場”へ入れる（新しい置き場を増やさない）。
   - 既存の配置規約に従う（例: 共通utilは `lib/`、UIは `components/`、backendは `backend/` 配下）。
   - `fix/` `tmp/` `backup/` のような退避ディレクトリを作らない。
 
@@ -115,7 +115,7 @@ find . -type f -iname '*keyword*'
 
 ### 4) 構造変更が発生した場合の同期（必須: 新規/移動/改名/削除）
 
-以下に該当する場合は、必ず `docs/repository-structure.md` を更新する。
+以下に該当する場合は、必ず `docs/development/permanent/repository-structure.md` を更新する。
 
 - 新しいファイル/ディレクトリを追加した
 - ファイル/ディレクトリを移動・リネームした
@@ -123,7 +123,7 @@ find . -type f -iname '*keyword*'
 
 ```bash
 bash scripts/tree.sh
-git diff -- docs/repository-structure.md
+git diff -- docs/development/permanent/repository-structure.md
 ```
 
 PR前に `$pr-flow` 側でも構造変更検知・同期を行う（最終的にPRへ必ず含める）。
@@ -136,7 +136,7 @@ PR前に `$pr-flow` 側でも構造変更検知・同期を行う（最終的に
 
 ## 完了条件
 
-- `docs/repository-structure.md` を参照した上で、既存探索の証跡（どのキーワードで探したか）が説明できる。
+- `docs/development/permanent/repository-structure.md` を参照した上で、既存探索の証跡（どのキーワードで探したか）が説明できる。
 - 重複を増やさずに要件を満たした。
 - 検証コマンドが成功している。
-- 構造変更（追加/移動/改名/削除）がある場合、`docs/repository-structure.md` が更新されPRに含まれている。
+- 構造変更（追加/移動/改名/削除）がある場合、`docs/development/permanent/repository-structure.md` が更新されPRに含まれている。
