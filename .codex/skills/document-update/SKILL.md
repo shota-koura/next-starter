@@ -1,11 +1,11 @@
 ---
 name: document-update
-description: PR作成/更新の前に、.steering/ と AGENTS.md を最小差分で同期する（必要なときだけ更新し、必要ならドキュメントだけを追加コミットして push する）
+description: PR作成/更新の前に、docs/development/.steering/ と AGENTS.md を最小差分で同期する（必要なときだけ更新し、必要ならドキュメントだけを追加コミットして push する）
 ---
 
 ## 目的
 
-- PR の差分内容と、作業ドキュメント（`.steering/`）の記載が乖離しないようにする（ただし「ステアリング不要」と合意済みの作業は対象外）。
+- PR の差分内容と、作業ドキュメント（`docs/development/.steering/`）の記載が乖離しないようにする（ただし「ステアリング不要」と合意済みの作業は対象外）。
 - 技術選定・実装方針・運用ルールが変わった場合にのみ `AGENTS.md` を最小差分で更新する（頻繁な編集はしない）。
 - `pr-flow` / `pr-fix-loop` と連動し、PR作成/更新の直前に「ドキュメント整合」を挟めるようにする。
 
@@ -13,15 +13,15 @@ description: PR作成/更新の前に、.steering/ と AGENTS.md を最小差分
 
 - PR を作る直前（推奨: `$pr-flow` の前）。
 - 既にPRがある場合でも、差分の方向性が変わった/追加の作業が入ったとき（push前の追加コミットとして）。
-- `pr-fix-loop` で修正方針が変わり、`.steering/*/design.md` や `tasklist.md` の更新が必要になったとき。
-- 「ステアリング不要」と合意済みの作業では、`.steering/` の更新は行わない（`AGENTS.md` の更新が必要な場合のみ本 skill を使う）。
+- `pr-fix-loop` で修正方針が変わり、`docs/development/.steering/*/design.md` や `tasklist.md` の更新が必要になったとき。
+- 「ステアリング不要」と合意済みの作業では、`docs/development/.steering/` の更新は行わない（`AGENTS.md` の更新が必要な場合のみ本 skill を使う）。
 
 ## 前提
 
 - 作業ブランチ上で実行する（main/master では実行しない）。
-- `.steering/` が存在することが望ましい（無い場合は最小限で作成してよい）。
+- `docs/development/.steering/` が存在することが望ましい（無い場合は最小限で作成してよい）。
 - `gh` が使える（PR URL の取得に使う。無くても進められる）。
-- 「ステアリング不要」と合意済みの作業では、`.steering/` を作成/更新しない。
+- 「ステアリング不要」と合意済みの作業では、`docs/development/.steering/` を作成/更新しない。
 
 ## 環境変数
 
@@ -34,8 +34,8 @@ description: PR作成/更新の前に、.steering/ と AGENTS.md を最小差分
 
 ## ガードレール
 
-- `.steering/steering.md` は並び替え禁止。追記は末尾に追加し、既存行の大規模整形をしない。
-- `.steering/<作業ID-...>/tasklist.md` は「自分の作業分」だけ更新する。番号や順序の全体編集は禁止。追加は末尾に追記。
+- `docs/development/.steering/steering.md` は並び替え禁止。追記は末尾に追加し、既存行の大規模整形をしない。
+- `docs/development/.steering/<作業ID-...>/tasklist.md` は「自分の作業分」だけ更新する。番号や順序の全体編集は禁止。追加は末尾に追記。
 - `AGENTS.md` は「技術選定/実装方針/運用ルール」が変わった場合にのみ更新する。表現の言い換えや再構成のための編集は禁止。
 - この skill は原則として「ドキュメントだけ」を変更する。コード変更やリファクタは行わない。
 - もしドキュメント更新のために大きな設計判断が必要になったら停止し、差分と判断ポイントを要約して報告する。
@@ -65,7 +65,7 @@ echo "[INFO] base_ref=$BASE_REF"
 
 ### 0.5) ステアリング要否の確認
 
-- 本作業が「ステアリング不要」と合意済みなら、**2〜4 をスキップ**し、`.steering/` は一切触らない。
+- 本作業が「ステアリング不要」と合意済みなら、**2〜4 をスキップ**し、`docs/development/.steering/` は一切触らない。
 - 合意が不明な場合は、作業開始前にユーザーへ確認してから進める。
 
 ### 1) PR差分から「今回の作業が触っている領域」を機械的に把握
@@ -76,29 +76,29 @@ echo "[INFO] changed files (vs $BASE_REF):"
 echo "$CHANGED_FILES"
 ```
 
-### 2) 「現在作業の .steering ディレクトリ」を推定
+### 2) 「現在作業の `docs/development/.steering/` ディレクトリ」を推定
 
 優先順位:
 
-1. PR差分に含まれる `.steering/<dir>/` があれば、それを現在作業として扱う（複数ある場合は最小限にし、必要なものだけ更新する）。
-2. 1が無い場合は `.steering/steering.md` に現在ブランチ名が書かれている行があれば、その行の作業ディレクトリを現在作業として扱う。
-3. それも無ければ、`.steering/` 配下に作業ディレクトリが1つだけある場合のみ、それを現在作業として扱う。
-4. 上記で一意に決まらない場合、`.steering/steering.md` だけを最小限更新して終了し、個別ディレクトリ更新は行わない。
+1. PR差分に含まれる `docs/development/.steering/<dir>/` があれば、それを現在作業として扱う（複数ある場合は最小限にし、必要なものだけ更新する）。
+2. 1が無い場合は `docs/development/.steering/steering.md` に現在ブランチ名が書かれている行があれば、その行の作業ディレクトリを現在作業として扱う。
+3. それも無ければ、`docs/development/.steering/` 配下に作業ディレクトリが1つだけある場合のみ、それを現在作業として扱う。
+4. 上記で一意に決まらない場合、`docs/development/.steering/steering.md` だけを最小限更新して終了し、個別ディレクトリ更新は行わない。
 
 機械的抽出（候補一覧）:
 
 ```bash
 STEERING_DIRS_FROM_DIFF="$(
   echo "$CHANGED_FILES" \
-  | grep -E '^\.(steering)/[^/]+/' \
-  | cut -d/ -f1-2 \
+  | grep -E '^docs/development/\.steering/[^/]+/' \
+  | cut -d/ -f1-4 \
   | sort -u || true
 )"
 echo "[INFO] steering dirs from diff:"
 echo "$STEERING_DIRS_FROM_DIFF"
 ```
 
-### 3) `.steering/steering.md` を最小差分で更新
+### 3) `docs/development/.steering/steering.md` を最小差分で更新
 
 目的:
 
@@ -107,7 +107,7 @@ echo "$STEERING_DIRS_FROM_DIFF"
 
 手順:
 
-- `.steering/steering.md` が無ければ作成する（最小の表）。
+- `docs/development/.steering/steering.md` が無ければ作成する（最小の表）。
 - 既存フォーマットがあるなら維持する。
 - 自分の作業行が無ければ末尾に追記する。
 - 自分の作業行があれば、その行だけ更新する。
@@ -130,7 +130,7 @@ fi
 対象候補:
 
 - 2. で推定した現在作業ディレクトリ
-- もしくは PR差分に含まれる `.steering/<dir>/`（必要なものだけ）
+- もしくは PR差分に含まれる `docs/development/.steering/<dir>/`（必要なものだけ）
 
 更新方針（最小差分）:
 
@@ -162,7 +162,7 @@ echo "$CHANGED_NOW"
 
 while IFS= read -r f; do
   [[ -z "$f" ]] && continue
-  if [[ "$f" != .steering/* && "$f" != AGENTS.md ]]; then
+  if [[ "$f" != docs/development/.steering/* && "$f" != AGENTS.md ]]; then
     echo "[ERROR] document-update でドキュメント以外が変更されています: $f"
     DOC_ONLY_OK=0
   fi
@@ -195,7 +195,7 @@ if [[ "$DOC_COMMIT" != "1" ]]; then
 fi
 
 # ドキュメントだけをステージ
-git add .steering AGENTS.md
+git add docs/development/.steering AGENTS.md
 
 # ステージ内容の確認（要点）
 git diff --cached --name-only
@@ -212,6 +212,6 @@ fi
 
 ## 完了条件
 
-- `.steering/` と `AGENTS.md` が必要な範囲で更新され、PR差分と乖離していない。
+- `docs/development/.steering/` と `AGENTS.md` が必要な範囲で更新され、PR差分と乖離していない。
 - 無関係なドキュメント編集（全体整形/並び替え）が無い。
 - 変更が発生した場合、ドキュメントだけの commit/push が完了している（DOC_COMMIT=1 の場合）。

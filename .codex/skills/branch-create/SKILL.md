@@ -13,7 +13,7 @@ description: ブランチ作成の際に、ステアリング名または作業�
 
 - 新しい作業を始めるとき。
 - 作業着手前（ファイル編集前）にブランチを作りたいとき。
-- ステアリング作業（`.steering/<dir>/...`）を開始するタイミング。
+- ステアリング作業（`docs/development/.steering/<dir>/...`）を開始するタイミング。
 - ステアリング無しの小改修（例: `.codex/config.toml` など）で、ブランチを自動で切りたいとき。
 
 ## ガードレール（必須）
@@ -28,15 +28,15 @@ description: ブランチ作成の際に、ステアリング名または作業�
 - `BRANCH_TYPE` : `feat|fix|docs|chore`（未指定なら自動推定）
 - `BRANCH_NAME` : 作業スラッグ（未指定なら自動推定。ここに `feat/` などの接頭辞は含めない）
 - `REQUEST_TEXT` : ユーザー依頼文（ブランチ種別の推定に使用）
-- `STEERING_DIR` : `.steering/<dir>` を明示したい場合（未指定なら自動検出）
+- `STEERING_DIR` : `docs/development/.steering/<dir>` を明示したい場合（未指定なら自動検出）
 - `BASE_BRANCH` : 既定 `main`（無ければ自動で `main` にフォールバック）
 - `REMOTE` : 既定 `origin`
 
 ## ブランチ名の決め方（優先順位）
 
 1. `BRANCH_NAME` が指定されていればそれを使う。
-2. `STEERING_DIR` が指定されていれば、その basename を使う（例: `.steering/1.0-20250115-add-tag-feature` -> `add-tag-feature`）。
-3. `.steering/` 配下に複数ある場合は停止し、`STEERING_DIR` を明示する。
+2. `STEERING_DIR` が指定されていれば、その basename を使う（例: `docs/development/.steering/1.0-20250115-add-tag-feature` -> `add-tag-feature`）。
+3. `docs/development/.steering/` 配下に複数ある場合は停止し、`STEERING_DIR` を明示する。
 4. それでも決まらない場合（ステアリング無し）:推定してブランチ名を確定する
 
 ## ブランチ種別（type）の決め方（未指定時）
@@ -91,7 +91,7 @@ git pull --ff-only "${REMOTE}" "${BASE_BRANCH}"
 # STEERING_DIR を自動検出（指定済みならそのまま）
 STEERING_DIR="${STEERING_DIR:-}"
 if [[ -z "$STEERING_DIR" ]]; then
-  mapfile -t STEERING_DIRS < <(ls -d .steering/*/ 2>/dev/null)
+  mapfile -t STEERING_DIRS < <(ls -d docs/development/.steering/*/ 2>/dev/null)
   if [[ "${#STEERING_DIRS[@]}" -gt 1 ]]; then
     echo "[ERROR] steering dirs are multiple. Set STEERING_DIR explicitly."
     exit 1
@@ -185,7 +185,7 @@ git switch -c "${BRANCH_FULL}" "${BASE_BRANCH}"
 ## 例
 
 - ステアリング作業（ステアリング名を使う）:
-  - `.steering/1.0-20260125-update-steering-flow/` がある場合
+  - `docs/development/.steering/1.0-20260125-update-steering-flow/` がある場合
   - `update-steering-flow`
 
 - ステアリング無しの改修（編集作業の意図から自動命名）:

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-OUT="docs/repository-structure.md"
+OUT="docs/development/permanent/repository-structure.md"
 DEFAULT_DEPTH="5"
 DEPTH="${1:-$DEFAULT_DEPTH}"
 

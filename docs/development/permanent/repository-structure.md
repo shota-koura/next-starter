@@ -82,11 +82,12 @@
 ├── .prettierignore
 ├── .prettierrc
 ├── .specstory
-│   ├── .what-is-this.md
+│   ├── .project.json
 │   └── history
 │       ├── 2026-01-04_07-12Z-bashスクリプトの和訳.md
 │       ├── 2026-01-17_06-14Z-pr-フロー-skill-の-p0-処理設計.md
-│       └── 2026-01-24_03-05Z-スクリプト出力先ディレクトリ変更.md
+│       ├── 2026-01-24_03-05Z-スクリプト出力先ディレクトリ変更.md
+│       └── 2026-02-01_04-44Z-@agents-md-ディレクトリ命名規則.md
 ├── .vscode
 │   └── settings.json
 ├── AGENTS.md
@@ -119,15 +120,22 @@
 │       └── textarea.tsx
 ├── components.json
 ├── docs
-│   ├── architecture.md
-│   ├── context
-│   │   └── test_context_20260124_120747.md
-│   ├── development-guidelines.md
-│   ├── functional-design.md
-│   ├── glossary.md
-│   ├── product-requirements.md
-│   ├── recomend-skills
-│   └── repository-structure.md
+│   ├── business
+│   │   └── .gitkeep
+│   └── development
+│       ├── .steering
+│       │   └── .gitkeep
+│       ├── context
+│       │   └── test_context_20260124_120747.md
+│       ├── permanent
+│       │   ├── architecture.md
+│       │   ├── development-guidelines.md
+│       │   ├── functional-design.md
+│       │   ├── glossary.md
+│       │   ├── product-requirements.md
+│       │   └── repository-structure.md
+│       └── recomend-skills
+│           └── .gitkeep
 ├── e2e
 │   └── health.spec.ts
 ├── eslint.config.mjs
@@ -154,5 +162,5 @@
 │   └── tree.sh
 └── tsconfig.json
 
-43 directories, 106 files
+47 directories, 110 files
 ```
