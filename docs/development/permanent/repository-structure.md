@@ -121,7 +121,27 @@
 ├── components.json
 ├── docs
 │   ├── business
-│   │   └── .gitkeep
+│   │   ├── .gitkeep
+│   │   ├── 01_Internal_workspace
+│   │   │   ├── .gitkeep
+│   │   │   ├── Meeting
+│   │   │   │   ├── .gitkeep
+│   │   │   │   ├── External
+│   │   │   │   └── Internal
+│   │   │   └── Member folder
+│   │   │       ├── .gitkeep
+│   │   │       ├── Eriko
+│   │   │       └── Shota
+│   │   ├── 02_Business reports
+│   │   │   └── .gitkeep
+│   │   ├── 03_Shared_data_from tA to Client
+│   │   │   └── .gitkeep
+│   │   ├── 04_Shared_data_from Client to tA
+│   │   │   └── .gitkeep
+│   │   ├── 05_Contracts
+│   │   │   └── .gitkeep
+│   │   └── 06_Deliverables
+│   │       └── .gitkeep
 │   └── development
 │       ├── .steering
 │       │   └── .gitkeep
@@ -162,5 +182,5 @@
 │   └── tree.sh
 └── tsconfig.json
 
-47 directories, 110 files
+59 directories, 118 files
 ```
