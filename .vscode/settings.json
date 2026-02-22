@@ -20,6 +20,8 @@
     "typescript",
     "typescriptreact"
   ],
+  "plantuml.render": "Local",
+  "plantuml.server": "",
   "cSpell.words": [
     "coderabbit",
     "coderabbitai",
