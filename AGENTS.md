@@ -455,6 +455,7 @@ Python / Backend:
 - PR を作成/更新する前の標準フロー（必須）:
   - `$pr-flow`
   - `pr-flow` の内部で、必要に応じて `$document-update` → `$precommit` → `$commit` → `$pr-review-merge` を順に使う
+  - `pr-review-merge` は merge 後、既定でローカルを `main` に戻して `origin/main` へ同期する
 
 - PR 作成〜CI待ち（入口）: `bash scripts/pr.sh`（無い場合は `gh` でフォールバック）
 - リポジトリ構造ドキュメント更新: `bash scripts/tree.sh`（通常は `$precommit` 内で毎回実行）
@@ -498,8 +499,8 @@ Python / Backend:
 - 既存 API 変更前の設計整理: `api-modify-design`
 - LLM 機能変更前の設計整理: `llm-change-design`
 - 多段階タスクの工程設計: `task-orchestration`
-- PR 提案からマージまでの入口: `pr-flow`
-- push後の PR レビュー/CI/マージ収束: `pr-review-merge`
+- PR 提案からマージとローカル `main` 同期までの入口: `pr-flow`
+- push後の PR レビュー/CI/マージ収束と post-merge sync: `pr-review-merge`
 - 初期セットアップ（Frontend/Backend/ツール検知）: `repo-setup`
 - Tailwind CSS v4 の導入: `setup-tailwind-frontend`
 - skills 棚卸し提案の作成: `skills-retro`

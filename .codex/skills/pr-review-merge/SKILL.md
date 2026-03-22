@@ -1,20 +1,20 @@
 ---
 name: pr-review-merge
-description: push後にPR作成/表示、@codex・CodeRabbitレビュー依頼、CIとレビュー出力を120秒毎にポーリング監視（上限なし）。双方のレビュー完了後に指摘内容を統一フォーマットで整理して提示し、修正要否を確認。必要に応じて修正→verify→push→再レビュー/CI を繰り返し、条件を満たせば自動マージまで完結。
+description: push後にPR作成/表示、@codex・CodeRabbitレビュー依頼、CIとレビュー出力を120秒毎にポーリング監視（上限なし）。双方のレビュー完了後に指摘内容を統一フォーマットで整理して提示し、修正要否を確認。必要に応じて修正→verify→push→再レビュー/CI を繰り返し、条件を満たせば自動マージし、その後ローカル main 同期まで完結。
 ---
 
 # PR Review Merge
 
 ## 目的
 
-- `git push` 後の「PR作成/取得 → レビュー起動 → CI監視 → レビュー監視 → 指摘整理 → 修正要否確認 →（必要に応じて）修正ループ → 自動マージ」までを、GitHub Web UI に依存せずに完結させる。
+- `git push` 後の「PR作成/取得 → レビュー起動 → CI監視 → レビュー監視 → 指摘整理 → 修正要否確認 →（必要に応じて）修正ループ → 自動マージ → ローカル `main` 同期」までを、GitHub Web UI に依存せずに完結させる。
 - Codex と CodeRabbit（行コメント/レビュー）の**両方が完了**するまで監視し続ける（120秒間隔・上限なし）。
 - 指摘を統一フォーマットで提示し、ユーザーに「どれを直すか」を選ばせる。
 - P0 は必須修正。P1/P2 はユーザー判断。
 
 ## いつ使うか
 
-- `git push` 直後に、PR作成からマージまでを一気通貫で進めたいとき。
+- `git push` 直後に、PR作成からマージとローカル同期までを一気通貫で進めたいとき。
 - PR は既にあるが、CI/レビュー完了を待って整理・判断・修正まで回したいとき。
 - CIやレビューが未開始でも、開始されるまで含めて監視し続けたいとき。
 - 上流の `pr-flow` から後段フローとして呼び出したいとき。
@@ -39,6 +39,7 @@ description: push後にPR作成/表示、@codex・CodeRabbitレビュー依頼�
 - 指摘一覧（統一フォーマット）
 - 「修正対応する指摘事項を教えてください」の質問
 - 収束後の自動マージ結果（または `AUTO_MERGE=0` の場合はコマンド提示）
+- ローカル `main` 同期結果（`POST_MERGE_SYNC=1` の場合）
 
 ## 環境変数
 
@@ -46,6 +47,8 @@ description: push後にPR作成/表示、@codex・CodeRabbitレビュー依頼�
 - `POLL_SEC_REVIEW`: ポーリング間隔（既定 `120`）
 - `AUTO_MERGE`: 収束後に自動マージするか（既定 `1`。`0` の場合はコマンド提示のみ）
 - `REVIEW_SINCE`: レビュー開始時刻の下限（ISO8601等）。未指定なら「このフロー開始以降」を基準にする
+- `POST_MERGE_SYNC`: merge 後にローカルを `main` へ戻して `origin/main` に同期するか（既定 `1`）
+- `DELETE_LOCAL_BRANCH`: merge 後にローカル作業ブランチを削除するか（既定 `1`）
 
 ## ガードレール（全工程で常に優先）
 
@@ -188,6 +191,23 @@ description: push後にPR作成/表示、@codex・CodeRabbitレビュー依頼�
 - `AUTO_MERGE=0` の場合:
   - 上記コマンドを提示して終了
 
+### Step 11: ローカル `main` 同期
+
+- 前提:
+  - `AUTO_MERGE=1` で merge が成功している
+  - `POST_MERGE_SYNC=1`
+- 実行内容:
+  - `git fetch origin`
+  - `git switch main`
+  - `git pull --ff-only origin main`
+  - `DELETE_LOCAL_BRANCH=1` かつ merge 対象ブランチが `main/master` 以外なら `git branch -d <merged-branch>`
+- 停止条件:
+  - 作業ツリーに未コミット差分が残っている
+  - `main` への切替または `ff-only` pull に失敗する
+  - ローカルブランチ削除に失敗する
+- 失敗時:
+  - merge 自体は成功扱いのまま停止し、どの post-merge sync が失敗したかを提示する
+
 ## 例外処理（必ず守る）
 
 - `gh` が一時的に失敗（API揺れ/ネットワーク）:
@@ -198,3 +218,6 @@ description: push後にPR作成/表示、@codex・CodeRabbitレビュー依頼�
 
 - ガードレール違反が必要になった:
   - commit/push せず停止。変更が必要な理由・該当ファイル・代替案を提示し、ユーザー判断を仰ぐ。
+
+- post-merge sync 中に `main` へ戻せない / `origin/main` へ fast-forward できない:
+  - merge 結果は維持したまま停止し、ローカルで必要な追従手順を提示する。
