@@ -8,7 +8,15 @@
 ├── .codex
 │   ├── config.toml
 │   └── skills
+│       ├── api-add-design
+│       │   └── SKILL.md
+│       ├── api-modify-design
+│       │   └── SKILL.md
 │       ├── branch-create
+│       │   └── SKILL.md
+│       ├── bug-investigation
+│       │   └── SKILL.md
+│       ├── change-review
 │       │   └── SKILL.md
 │       ├── commit
 │       │   ├── SKILL.md
@@ -19,15 +27,17 @@
 │       │   └── SKILL.md
 │       ├── document-update
 │       │   └── SKILL.md
-│       ├── mcp-chrome-devtools-perf
+│       ├── llm-change-design
 │       │   └── SKILL.md
-│       ├── mcp-context7-docs
+│       ├── mcp-chrome-devtools-perf
 │       │   └── SKILL.md
 │       ├── mcp-playwright-debug
 │       │   └── SKILL.md
 │       ├── mcp-serena-refactor
 │       │   └── SKILL.md
 │       ├── pr-flow
+│       │   └── SKILL.md
+│       ├── pr-review-merge
 │       │   └── SKILL.md
 │       ├── precommit
 │       │   ├── SKILL.md
@@ -42,6 +52,12 @@
 │       ├── setup-tailwind-frontend
 │       │   └── SKILL.md
 │       ├── skills-retro
+│       │   └── SKILL.md
+│       ├── supabase-cli-workflow
+│       │   └── SKILL.md
+│       ├── task-orchestration
+│       │   └── SKILL.md
+│       ├── vercel-cli-workflow
 │       │   └── SKILL.md
 │       ├── verify-fast
 │       │   ├── SKILL.md
@@ -182,5 +198,5 @@
 │   └── tree.sh
 └── tsconfig.json
 
-59 directories, 118 files
+67 directories, 126 files
 ```

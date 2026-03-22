@@ -123,6 +123,8 @@ next-starter/
 #### PR / CI / レビュー運用
 
 - `$pr-flow`
+  - `document-update`、`precommit`、`commit`、`pr-review-merge` を順に使い、PR 提案からマージまでの入口をまとめる
+- `$pr-review-merge`
   - push 後の PR 作成/表示、CI 監視、PR コメントでの `@codex review` 投稿、（任意で）CodeRabbit 指摘の確認、マージコマンド提示までを定型化
 - `$ci-log-failed`
   - CI 失敗時に、失敗チェック名と最新 run の失敗ログ（`gh run view --log-failed`）を抽出する
@@ -153,14 +155,19 @@ next-starter/
 以下は、MCP（Model Context Protocol）で対応ツールが有効化されている前提の補助 skill です。
 テンプレ利用者が MCP を使わない場合でも、削除せずに「未使用で問題ない」想定です。
 
-- `$mcp-context7-docs`（doc 参照）
-  - 依存ライブラリの一次情報（公式ドキュメント/README 等）を引いて実装判断に反映する
 - `$mcp-playwright-debug`（UI 再現/スクショ/ログ収集）
   - UI の再現、スクリーンショット、console/network 要点を収集して原因切り分けに使う
 - `$mcp-serena-refactor`（安全なリファクタ）
   - シンボル参照を追跡しながら rename/置換を行い、検索置換の事故を避ける
 - `$mcp-chrome-devtools-perf`（パフォーマンス計測）
   - trace/insight でパフォーマンス課題を根拠づけ、改善ポイントを特定する
+
+#### 補助 CLI（任意）
+
+- `$supabase-cli-workflow`
+  - Supabase CLI を使って local 開発、link、migration、型生成の流れを整理する
+- `$vercel-cli-workflow`
+  - Vercel CLI を使って project link、env pull、deploy / inspect の流れを整理する
 
 注意:
 
@@ -169,7 +176,8 @@ next-starter/
 ### よく使う呼び出し例
 
 - 新しい util/型/スキーマを追加する前に既存探索する: `$dedupe`
-- push 後の PR/CI フローを回す: `$pr-flow`
+- PR 提案からマージまでの入口として回す: `$pr-flow`
+- push 後のレビュー/CI/マージ収束だけを回す: `$pr-review-merge`
 - CI が落ちたのでログを出す: `$ci-log-failed`
 - CodeRabbit 指摘を一覧して要点整理する: `$coderabbit-digest`
 - 開発ループ中にサクッと検証する: `$verify-fast`

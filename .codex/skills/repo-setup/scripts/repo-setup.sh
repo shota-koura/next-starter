@@ -194,6 +194,46 @@ if ! command -v jq >/dev/null 2>&1; then
   esac
 fi
 
+# supabase: 任意だが local/dev workflow で便利。repo-setup は継続する。
+if command -v supabase >/dev/null 2>&1; then
+  echo "[OK] supabase found: $(supabase --version | head -n 1)"
+else
+  echo "[WARN] supabase CLI not found. Local Supabase workflows and type generation use it."
+  echo "[HINT] install supabase CLI:"
+  case "$OS_KIND" in
+    macos) echo "  brew install supabase/tap/supabase" ;;
+    linux|wsl) echo "  see https://supabase.com/docs/guides/cli/getting-started" ;;
+    windows) echo "  scoop install supabase" ;;
+    *) echo "  install Supabase CLI for your OS" ;;
+  esac
+fi
+
+# vercel: 任意だが env/deploy workflow で便利。repo-setup は継続する。
+if command -v vercel >/dev/null 2>&1; then
+  echo "[OK] vercel found: $(vercel --version | head -n 1)"
+else
+  echo "[WARN] vercel CLI not found. Deploy/env workflows may require it."
+  echo "[HINT] install vercel CLI:"
+  case "$OS_KIND" in
+    macos|linux|wsl) echo "  npm install -g vercel" ;;
+    windows) echo "  npm install -g vercel" ;;
+    *) echo "  install Vercel CLI for your OS" ;;
+  esac
+fi
+
+# playwright: CLI がなくても npx で動くことがあるが、あると再実行しやすい。
+if command -v playwright >/dev/null 2>&1; then
+  echo "[OK] playwright found: $(playwright --version | head -n 1)"
+else
+  echo "[WARN] playwright CLI not found. E2E reruns can still use npx if the package is installed."
+  echo "[HINT] install Playwright CLI:"
+  case "$OS_KIND" in
+    macos|linux|wsl) echo "  npm install -g playwright" ;;
+    windows) echo "  npm install -g playwright" ;;
+    *) echo "  install Playwright CLI for your OS" ;;
+  esac
+fi
+
 if [[ -n "${REPO_URL:-}" ]]; then
   if [[ -z "${TARGET_DIR:-}" ]]; then
     echo "[ERROR] REPO_URL を指定した場合は TARGET_DIR が必須です。"

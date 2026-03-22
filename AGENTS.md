@@ -453,11 +453,8 @@ Python / Backend:
   - `$commit`（デフォルトで push まで行う。必要なら `PUSH=0`）
 
 - PR を作成/更新する前の標準フロー（必須）:
-  - `$document-update`（PR前のドキュメント整合。永続ファイルの不要な更新は禁止。必要最小限のみ）
-  - `$precommit`
-  - `export COMMIT_MSG='type(scope): 日本語要約'`
-  - `$commit`
   - `$pr-flow`
+  - `pr-flow` の内部で、必要に応じて `$document-update` → `$precommit` → `$commit` → `$pr-review-merge` を順に使う
 
 - PR 作成〜CI待ち（入口）: `bash scripts/pr.sh`（無い場合は `gh` でフォールバック）
 - リポジトリ構造ドキュメント更新: `bash scripts/tree.sh`（通常は `$precommit` 内で毎回実行）
@@ -495,7 +492,14 @@ Python / Backend:
 - プレコミット（整形/セルフレビュー/tree 更新）: `precommit`
 - コミット（verify-full 実行後に add/commit/push）: `commit`
 - 重複検知/統合（既存探索の標準手順）: `dedupe`
-- PR/CI の一連フロー（push後）: `pr-flow`
+- ローカル差分の事前レビュー: `change-review`
+- 不具合調査の入口整理: `bug-investigation`
+- 新規 API 追加前の設計整理: `api-add-design`
+- 既存 API 変更前の設計整理: `api-modify-design`
+- LLM 機能変更前の設計整理: `llm-change-design`
+- 多段階タスクの工程設計: `task-orchestration`
+- PR 提案からマージまでの入口: `pr-flow`
+- push後の PR レビュー/CI/マージ収束: `pr-review-merge`
 - 初期セットアップ（Frontend/Backend/ツール検知）: `repo-setup`
 - Tailwind CSS v4 の導入: `setup-tailwind-frontend`
 - skills 棚卸し提案の作成: `skills-retro`
@@ -508,10 +512,14 @@ Python / Backend:
 
 ### MCP 連携（任意・環境依存）
 
-- （MCP）ドキュメント参照: `mcp-context7-docs`
 - （MCP）UI再現・スクショ・ログ収集: `mcp-playwright-debug`
 - （MCP）安全なリファクタ（シンボル操作）: `mcp-serena-refactor`
 - （MCP）パフォーマンス計測（DevTools）: `mcp-chrome-devtools-perf`
+
+### 補助 CLI（任意）
+
+- Supabase CLI を使うワークフロー: `supabase-cli-workflow`
+- Vercel CLI を使うワークフロー: `vercel-cli-workflow`
 
 補足:
 
