@@ -12,6 +12,7 @@ metadata:
   - 既存 skill の改修候補
     を提案として残す。
 - ただし **この skill は .codex/skills 自体を変更しない（提案書出力のみ）**。
+- skill を implicit trigger 寄りにするか、explicit 実行寄りにするかの整理も提案対象に含める。
 
 ## いつ使うか
 
@@ -83,6 +84,17 @@ metadata:
   - 対象 skill
   - 望ましい変更点（最小差分）
   - その理由（履歴上の詰まり/重複/抜け）
+- agent を組み込む提案では以下も含める:
+  - どの条件でどの agent を使うか
+  - implicit trigger 寄りか explicit 寄りか
+  - read-only -> write の順が守られているか
+
+## Subagent 利用方針
+
+- sub-agent 利用が明示的に許可されている場合のみ、次を推奨する。
+- 大きめの改善提案の整理には `workflow-orchestrator` を使う。
+- 複数 skill や agent の分担案に落とす必要がある場合のみ `multi-agent-coordinator` を使う。
+- この skill は提案書作成が主目的であり、実際の skill 変更や自動編集には進まない。
 
 ### 5) docs/development/recomend-skills/ に Markdown 出力
 

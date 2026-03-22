@@ -1,13 +1,13 @@
 ---
 name: repo-setup
-description: git clone（任意）後に Frontend/Backend の初期セットアップと「Recommended first run」を実行し、必要ツール（gh等）を検知して不足時はOS別インストール手順を提示する
+description: git clone（任意）後に Frontend/Backend の初期セットアップと「Recommended first run」を実行し、必要ツール（gh, supabase, vercel, playwright等）を検知して不足時はOS別インストール手順を提示する
 ---
 
 ## 目的
 
 - README.md の「Quick Start」「Recommended first run（初回セットアップの推奨手順）」を、ターミナルで再現可能な定型手順として固定する。
 - clone 直後に依存関係導入と静的解析/テストを一通り通し、クリーンな状態で開発を開始できるようにする。
-- PR/CI 運用に必要な `gh` について、存在確認を行い、未導入なら OS を判定してインストール手順を提示する。
+- PR/CI 運用に必要な `gh` と、補助 CLI（`supabase`, `vercel`, `playwright`）の存在確認を行い、未導入なら OS を判定してインストール手順を提示する。
 
 ## いつ使うか
 
@@ -27,6 +27,9 @@ description: git clone（任意）後に Frontend/Backend の初期セットア�
 - `tree` は `scripts/tree.sh` に必要（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
 - `rg` は `$dedupe` に推奨（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
 - `jq` は PR/CI スキル（`pr-flow` / `pr-fix-loop`）で使用（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
+- `supabase` は Supabase ローカル開発や型生成で便利（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
+- `vercel` は env pull や deploy 確認で便利（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
+- `playwright` は E2E の再実行や trace 確認で便利。基本は MCP を優先してよいが、CLI も利用可能にしておくと検証が安定する。
 
 ## 環境変数
 
@@ -286,6 +289,46 @@ if ! command -v jq >/dev/null 2>&1; then
     *)
       echo "  install jq for your OS"
       ;;
+  esac
+fi
+
+# supabase: 任意だが local/dev workflow で便利。repo-setup は継続する。
+if command -v supabase >/dev/null 2>&1; then
+  echo "[OK] supabase found: $(supabase --version | head -n 1)"
+else
+  echo "[WARN] supabase CLI not found. Local Supabase workflows and type generation use it."
+  echo "[HINT] install supabase CLI:"
+  case "$OS_KIND" in
+    macos) echo "  brew install supabase/tap/supabase" ;;
+    linux|wsl) echo "  see https://supabase.com/docs/guides/cli/getting-started" ;;
+    windows) echo "  scoop install supabase" ;;
+    *) echo "  install Supabase CLI for your OS" ;;
+  esac
+fi
+
+# vercel: 任意だが env/deploy workflow で便利。repo-setup は継続する。
+if command -v vercel >/dev/null 2>&1; then
+  echo "[OK] vercel found: $(vercel --version | head -n 1)"
+else
+  echo "[WARN] vercel CLI not found. Deploy/env workflows may require it."
+  echo "[HINT] install vercel CLI:"
+  case "$OS_KIND" in
+    macos|linux|wsl) echo "  npm install -g vercel" ;;
+    windows) echo "  npm install -g vercel" ;;
+    *) echo "  install Vercel CLI for your OS" ;;
+  esac
+fi
+
+# playwright: CLI がなくても npx で動くことがあるが、あると再実行しやすい。
+if command -v playwright >/dev/null 2>&1; then
+  echo "[OK] playwright found: $(playwright --version | head -n 1)"
+else
+  echo "[WARN] playwright CLI not found. E2E reruns can still use npx if the package is installed."
+  echo "[HINT] install Playwright CLI:"
+  case "$OS_KIND" in
+    macos|linux|wsl) echo "  npm install -g playwright" ;;
+    windows) echo "  npm install -g playwright" ;;
+    *) echo "  install Playwright CLI for your OS" ;;
   esac
 fi
 ```

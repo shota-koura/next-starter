@@ -139,6 +139,51 @@ if (-not (Get-Command jq -ErrorAction SilentlyContinue)) {
   }
 }
 
+if (Get-Command supabase -ErrorAction SilentlyContinue) {
+  $supabaseVersion = & supabase --version | Select-Object -First 1
+  Write-Host "[OK] supabase found: $supabaseVersion"
+} else {
+  Write-Host "[WARN] supabase CLI not found. Local Supabase workflows and type generation use it."
+  Write-Host "[HINT] install supabase CLI:"
+  switch ($osKind) {
+    "macos" { Write-Host "  brew install supabase/tap/supabase" }
+    "linux" { Write-Host "  see https://supabase.com/docs/guides/cli/getting-started" }
+    "wsl" { Write-Host "  see https://supabase.com/docs/guides/cli/getting-started" }
+    "windows" { Write-Host "  scoop install supabase" }
+    default { Write-Host "  install Supabase CLI for your OS" }
+  }
+}
+
+if (Get-Command vercel -ErrorAction SilentlyContinue) {
+  $vercelVersion = & vercel --version | Select-Object -First 1
+  Write-Host "[OK] vercel found: $vercelVersion"
+} else {
+  Write-Host "[WARN] vercel CLI not found. Deploy/env workflows may require it."
+  Write-Host "[HINT] install vercel CLI:"
+  switch ($osKind) {
+    "macos" { Write-Host "  npm install -g vercel" }
+    "linux" { Write-Host "  npm install -g vercel" }
+    "wsl" { Write-Host "  npm install -g vercel" }
+    "windows" { Write-Host "  npm install -g vercel" }
+    default { Write-Host "  install Vercel CLI for your OS" }
+  }
+}
+
+if (Get-Command playwright -ErrorAction SilentlyContinue) {
+  $playwrightVersion = & playwright --version | Select-Object -First 1
+  Write-Host "[OK] playwright found: $playwrightVersion"
+} else {
+  Write-Host "[WARN] playwright CLI not found. E2E reruns can still use npx if the package is installed."
+  Write-Host "[HINT] install Playwright CLI:"
+  switch ($osKind) {
+    "macos" { Write-Host "  npm install -g playwright" }
+    "linux" { Write-Host "  npm install -g playwright" }
+    "wsl" { Write-Host "  npm install -g playwright" }
+    "windows" { Write-Host "  npm install -g playwright" }
+    default { Write-Host "  install Playwright CLI for your OS" }
+  }
+}
+
 if (-not [string]::IsNullOrWhiteSpace($env:REPO_URL)) {
   if ([string]::IsNullOrWhiteSpace($env:TARGET_DIR)) {
     Write-Host "[ERROR] REPO_URL を指定した場合は TARGET_DIR が必須です。"
