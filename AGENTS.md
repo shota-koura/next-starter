@@ -455,6 +455,7 @@ Python / Backend:
 - PR を作成/更新する前の標準フロー（必須）:
   - `$pr-flow`
   - `pr-flow` の内部で、必要に応じて `$document-update` → `$precommit` → `$coderabbit-pre-review` → `$change-review` → `$commit` → `$pr-review-merge` を順に使う
+  - 上記は reviewer sub-agent を使えるセッションを前提とする
   - `pr-review-merge` は merge 後、既定でローカルを `main` に戻して `origin/main` へ同期する
 
 - PR 作成〜CI待ち（入口）: `bash scripts/pr.sh`（無い場合は `gh` でフォールバック）
@@ -493,7 +494,7 @@ Python / Backend:
 - プレコミット（整形/セルフレビュー/tree 更新）: `precommit`
 - コミット（verify-full 実行後に add/commit/push）: `commit`
 - 重複検知/統合（既存探索の標準手順）: `dedupe`
-- ローカル差分の事前レビュー: `change-review`
+- ローカル差分の事前レビュー（reviewer sub-agent 必須）: `change-review`
 - CodeRabbit CLI による pre-review: `coderabbit-pre-review`
 - 不具合調査の入口整理: `bug-investigation`
 - 新規 API 追加前の設計整理: `api-add-design`
