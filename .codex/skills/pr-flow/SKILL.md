@@ -21,6 +21,7 @@ description: document-update、precommit、coderabbit-pre-review、change-review
 - この skill は薄い orchestrator であり、個別の検証や GitHub 操作の実体を持たない。
 - 実体は既存 skill に委ねる。
 - 各段階で停止条件に当たった場合は、その skill の結果を優先する。
+- `change-review` は reviewer sub-agent を必須とするため、この標準順序は reviewer を使えるセッションを前提にする。
 
 ## 標準順序
 
@@ -52,9 +53,10 @@ CodeRabbit CLI で pre-review を行い、修正要否を整理してから comm
 $coderabbit-pre-review
 ```
 
-### 4) Codex 観点のローカルレビュー
+### 4) Codex reviewer によるローカルレビュー
 
-Codex 観点のローカル差分レビューを行い、重大な finding があれば commit 前に修正する。
+`change-review` では reviewer sub-agent を必ず使い、親エージェントが結果を `coderabbit-pre-review` と同じ形式へ正規化して提示する。重大な finding があれば commit 前に修正する。
+reviewer を使えないセッションでは、この段階で停止し、sub-agent 利用可能なセッションへ切り替えてから再開する。
 
 ```text
 $change-review
@@ -81,6 +83,7 @@ $pr-review-merge
 - `document-update` が大きな設計判断を要求して停止した場合
 - `coderabbit-pre-review` が修正判断や認証不足で停止した場合
 - `change-review` が blocking issue を返した場合
+- `change-review` が reviewer を利用できず停止した場合
 - `commit` がガードレール違反を検知した場合
 - `pr-review-merge` が禁止領域変更や人間判断を要求した場合
 

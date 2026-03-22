@@ -125,10 +125,11 @@ next-starter/
 
 - `$pr-flow`
   - `document-update`、`precommit`、`coderabbit-pre-review`、`change-review`、`commit`、`pr-review-merge` を順に使い、PR 提案からマージまでの入口をまとめる
+  - `change-review` が reviewer sub-agent 必須のため、reviewer を使えるセッションを前提にする
 - `$coderabbit-pre-review`
   - CodeRabbit CLI で `precommit` 後・`commit` 前のローカル差分を事前レビューし、P0/P1/P2 相当で整理する
 - `$change-review`
-  - ローカル差分を Codex 観点で事前レビューする。sub-agent 利用が許可されていれば `reviewer` を使う
+  - ローカル差分を reviewer sub-agent で事前レビューし、親エージェントが CodeRabbit と同じ形式で結果を整理する
 - `$pr-review-merge`
   - push 後の PR 作成/表示、CI 監視、マージまでを定型化
 
@@ -166,7 +167,7 @@ next-starter/
 - `$coderabbit-pre-review`
   - CodeRabbit CLI を使って `precommit` 後・`commit` 前のローカル差分を review する
 - `$change-review`
-  - ローカル差分を Codex 観点で review する
+  - ローカル差分を reviewer sub-agent で review し、親エージェントが CodeRabbit と同じ形式で結果を整理する
 - `$supabase-cli-workflow`
   - Supabase CLI を使って local 開発、link、migration、型生成の流れを整理する
 - `$vercel-cli-workflow`
@@ -418,8 +419,9 @@ GitHub のテンプレ機能は「リポジトリ内のファイル」はコピ�
   - 既定では PR 自動レビューではなく、`coderabbit-pre-review` で左シフトする
 
 - Codex:
-  - 既定では `change-review` でローカル差分を review する
-  - sub-agent 利用が許可されていれば `reviewer` を使う
+  - 既定では `change-review` で reviewer sub-agent を使ってローカル差分を review する
+  - 親エージェントが reviewer の結果を回収し、CodeRabbit と同じ形式に揃えて提示する
+  - そのため、標準の `pr-flow` は reviewer を使えるセッションを前提にする
   - GitHub 上の `@codex review` は manual fallback としてのみ使う
 
 ### 1) `.coderabbit.yaml` を用意する（完了している前提）

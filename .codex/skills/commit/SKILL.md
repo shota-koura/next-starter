@@ -18,7 +18,7 @@ description: verify-full 実行後にガードレール検査を行い、COMMIT_
 ## 前提
 
 - 直前に `$precommit` を実施していること（整形・tree 更新が完了していること）。
-- PR 前提の標準フローでは、直前に `$coderabbit-pre-review` と `$change-review` を実施していることが望ましい。
+- PR 前提の標準フローでは、直前に `$coderabbit-pre-review` と reviewer 必須の `$change-review` を実施していること。
 - 作業ブランチ上であること。
 
 ## 環境変数
@@ -226,7 +226,7 @@ fi
 
 ### 9) 次の行動（任意）
 
-- PR 前提の標準フローでは、`$coderabbit-pre-review` と `$change-review` を済ませてから commit する。
+- PR 前提の標準フローでは、`$coderabbit-pre-review` と reviewer 必須の `$change-review` を済ませてから commit する。
 - guarded file を意図して変更する場合だけ、必要最小限の exact path を `ALLOW_GUARDED_FILES` に指定する。
 - push 済みで PR を作成・更新する場合は `$pr-flow` を使う。
 - PR 前のドキュメント整合が必要な場合は `$document-update` を先に実行してから `$pr-flow` に進む（AGENTS.md を参照）。
