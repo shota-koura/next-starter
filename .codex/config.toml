@@ -11,4 +11,4 @@ network_access = true
 collaboration_modes = true
 shell_snapshot = true
 unified_exec = true
-apply_patch_freeform = true
+apply_patch_freeform = false
