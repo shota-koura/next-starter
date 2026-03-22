@@ -8,12 +8,14 @@ description: CodeRabbit CLI を使って、precommit 後・commit 前のロー�
 - PR を作る前に、ローカル差分へ CodeRabbit の観点を当てる。
 - 指摘を `P0/P1/P2` 相当で整理し、commit 前に直すべきものを決める。
 - GitHub 上の CodeRabbit 自動レビューを待たずに、左シフトで手戻りを減らす。
+- `change-review` と並列で走らせても、親エージェントが結果を統合できる形に揃える。
 
 ## いつ使うか
 
 - `$precommit` の直後、`$commit` の前。
 - PR 前提の標準フローで CodeRabbit の観点を先に入れたいとき。
 - 大きめの差分で、ローカルのうちに review を済ませたいとき。
+- `change-review` と並列に流して、ローカル review の待ち時間を短くしたいとき。
 
 ## 前提
 
@@ -53,8 +55,9 @@ pwsh -File .codex/skills/coderabbit-pre-review/scripts/coderabbit-pre-review.ps1
      - `CodeRabbit review を待機中です...`
      - `長い差分では数分かかることがあります`
 4. 出力を `P0/P1/P2` 相当で整理する
-5. `P0` は修正候補として扱い、`P1/P2` は対応要否を判断する
-6. 必要な修正後、再度 `$verify-fast` または `$verify-full` を行ってから `$commit` に進む
+5. finding が 1 件でもあれば、番号付きで提示してユーザーが対応番号を選ぶまで停止する
+6. `P0` は原則 `対応推奨`、`P1/P2` は `条件付き対応` または `見送り可` を付けて示す
+7. 指示された番号だけを修正し、必要なら再度 `$verify-fast` または `$verify-full` を行ってから `$commit` に進む
 
 ## 出力の扱い
 
@@ -63,11 +66,13 @@ pwsh -File .codex/skills/coderabbit-pre-review/scripts/coderabbit-pre-review.ps1
 
 ```text
 - No.:
+- ソース: CodeRabbit
 - 懸念レベル: P0|P1|P2
 - レビュータイトル:
 - レビュー内容:
 - 参照:
-- 見解:
+- 解釈:
+- 対応方針: 対応推奨|条件付き対応|見送り可
 ```
 
 ## 運用ルール
@@ -76,6 +81,7 @@ pwsh -File .codex/skills/coderabbit-pre-review/scripts/coderabbit-pre-review.ps1
 - `P0` は原則修正候補として扱う。
 - `P1/P2` は差分規模、期限、影響度で対応要否を判断する。
 - CodeRabbit CLI の結果は pre-review 用であり、PR 上の merge gate にはしない。
+- finding がある場合、ユーザー指示前に自動修正へ進まない。
 
 ## 完了条件
 

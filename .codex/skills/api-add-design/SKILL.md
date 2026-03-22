@@ -27,7 +27,7 @@ description: 新規 API 追加の前に、外部仕様確認、契約設計、�
 - 仕様確認が必要なら `docs-researcher` を使う。
 - 契約設計には `api-designer` を使う。
 - 実装に進む場合、バックエンド局所の追加は `backend-developer` を使う。
-- 実装後のリスク確認には `reviewer` を使う。
+- 実装後のリスク確認には `codex-reviewer` を使う。
 
 ## 出力
 

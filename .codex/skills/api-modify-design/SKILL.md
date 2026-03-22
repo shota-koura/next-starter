@@ -29,7 +29,7 @@ description: 既存 API 変更の前に、外部仕様確認、互換性整理�
 - 契約変更の整理には `api-designer` を使う。
 - 既存利用箇所や影響経路の把握には `code-mapper` を使う。
 - 実装に進む場合、バックエンド局所の変更は `backend-developer` を使う。
-- 実装後のリスク確認には `reviewer` を使う。
+- 実装後のリスク確認には `codex-reviewer` を使う。
 
 ## 出力
 

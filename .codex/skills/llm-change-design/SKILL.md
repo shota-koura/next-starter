@@ -29,7 +29,7 @@ description: LLM 機能変更の前に、仕様確認、ワークフロー設計
 - 実装影響の経路把握には `code-mapper` を使う。
 - backend 実装が必要なら `backend-developer` を使う。
 - UI/API 跨ぎの変更が必要なら `fullstack-developer` を使う。
-- 実装後のリスク確認には `reviewer` を使う。
+- 実装後のリスク確認には `codex-reviewer` を使う。
 
 ## 出力
 
