@@ -207,6 +207,17 @@ else
   esac
 fi
 
+CODEX_HOME_DIR="${CODEX_HOME:-$HOME/.codex}"
+CODEX_REVIEWER_PATH="$CODEX_HOME_DIR/agents/codex-reviewer.toml"
+if [[ -f "$CODEX_REVIEWER_PATH" ]]; then
+  echo "[OK] codex-reviewer agent found: $CODEX_REVIEWER_PATH"
+else
+  echo "[WARN] codex-reviewer agent not found. change-review / pr-flow require it."
+  echo "[HINT] install codex-reviewer.toml into:"
+  echo "  $CODEX_REVIEWER_PATH"
+  echo "[HINT] if your team manages shared agents outside this repo, copy or install codex-reviewer.toml there before using pr-flow."
+fi
+
 # supabase: 任意だが local/dev workflow で便利。repo-setup は継続する。
 if command -v supabase >/dev/null 2>&1; then
   echo "[OK] supabase found: $(supabase --version | head -n 1)"

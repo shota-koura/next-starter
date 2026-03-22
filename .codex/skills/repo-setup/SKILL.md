@@ -1,13 +1,13 @@
 ---
 name: repo-setup
-description: git clone（任意）後に Frontend/Backend の初期セットアップと「Recommended first run」を実行し、必要ツール（gh, coderabbit, supabase, vercel, playwright等）を検知して不足時はOS別インストール手順を提示する
+description: git clone（任意）後に Frontend/Backend の初期セットアップと「Recommended first run」を実行し、必要ツール（gh, coderabbit, codex-reviewer, supabase, vercel, playwright等）を検知して不足時はOS別インストール手順を提示する
 ---
 
 ## 目的
 
 - README.md の「Quick Start」「Recommended first run（初回セットアップの推奨手順）」を、ターミナルで再現可能な定型手順として固定する。
 - clone 直後に依存関係導入と静的解析/テストを一通り通し、クリーンな状態で開発を開始できるようにする。
-- PR/CI 運用に必要な `gh` と、補助 CLI（`coderabbit`, `supabase`, `vercel`, `playwright`）の存在確認を行い、未導入なら OS を判定してインストール手順を提示する。
+- PR/CI 運用に必要な `gh` と、補助 CLI（`coderabbit`, `supabase`, `vercel`, `playwright`）および custom agent（`codex-reviewer`）の存在確認を行い、未導入なら OS を判定してインストール手順を提示する。
 
 ## いつ使うか
 
@@ -28,6 +28,7 @@ description: git clone（任意）後に Frontend/Backend の初期セットア�
 - `rg` は `$dedupe` に推奨（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
 - `jq` は PR/CI スキル（`pr-flow` / `pr-review-merge`）で使用（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
 - `coderabbit` は PR 前の pre-review に使う（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
+- `codex-reviewer` は `change-review` と標準 `pr-flow` に必要な custom agent（repo-setup では未導入でも実行は継続し、配置場所と不足を案内する）。
 - `supabase` は Supabase ローカル開発や型生成で便利（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
 - `vercel` は env pull や deploy 確認で便利（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
 - `playwright` は E2E の再実行や trace 確認で便利。基本は MCP を優先してよいが、CLI も利用可能にしておくと検証が安定する。
@@ -87,7 +88,7 @@ pwsh -File .codex/skills/repo-setup/scripts/repo-setup.ps1
 
 ## 手順
 
-### 0) 前提コマンドの検知（gh を含む）
+### 0) 前提コマンドと custom agent の検知（gh を含む）
 
 ```bash
 set -euo pipefail
@@ -304,6 +305,18 @@ else
     windows) echo "  see https://docs.coderabbit.ai/cli for the latest install steps" ;;
     *) echo "  install CodeRabbit CLI for your OS" ;;
   esac
+fi
+
+# codex-reviewer: change-review / pr-flow で必要な custom agent。repo-setup は継続する。
+CODEX_HOME_DIR="${CODEX_HOME:-$HOME/.codex}"
+CODEX_REVIEWER_PATH="$CODEX_HOME_DIR/agents/codex-reviewer.toml"
+if [[ -f "$CODEX_REVIEWER_PATH" ]]; then
+  echo "[OK] codex-reviewer agent found: $CODEX_REVIEWER_PATH"
+else
+  echo "[WARN] codex-reviewer agent not found. change-review / pr-flow require it."
+  echo "[HINT] install codex-reviewer.toml into:"
+  echo "  $CODEX_REVIEWER_PATH"
+  echo "[HINT] if your team manages shared agents outside this repo, copy or install codex-reviewer.toml there before using pr-flow."
 fi
 
 # supabase: 任意だが local/dev workflow で便利。repo-setup は継続する。

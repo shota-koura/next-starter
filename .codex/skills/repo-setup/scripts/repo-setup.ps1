@@ -153,6 +153,17 @@ if (Get-Command coderabbit -ErrorAction SilentlyContinue) {
   }
 }
 
+$codexHomeDir = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME ".codex" }
+$codexReviewerPath = Join-Path $codexHomeDir "agents/codex-reviewer.toml"
+if (Test-Path $codexReviewerPath) {
+  Write-Host "[OK] codex-reviewer agent found: $codexReviewerPath"
+} else {
+  Write-Host "[WARN] codex-reviewer agent not found. change-review / pr-flow require it."
+  Write-Host "[HINT] install codex-reviewer.toml into:"
+  Write-Host "  $codexReviewerPath"
+  Write-Host "[HINT] if your team manages shared agents outside this repo, copy or install codex-reviewer.toml there before using pr-flow."
+}
+
 if (Get-Command supabase -ErrorAction SilentlyContinue) {
   $supabaseVersion = & supabase --version | Select-Object -First 1
   Write-Host "[OK] supabase found: $supabaseVersion"

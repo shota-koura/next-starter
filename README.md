@@ -73,6 +73,7 @@ AI レビュー機能を使う場合の前提:
 
 - CodeRabbit CLI: ローカルで `coderabbit` が使え、`coderabbit auth login` 済みであること
 - Codex: Codex を使えるプラン/権限があること
+- `codex-reviewer`: `$CODEX_HOME/agents/codex-reviewer.toml`、`CODEX_HOME` 未設定時は `~/.codex/agents/codex-reviewer.toml` に配置されていること
 
 ## Project Structure
 
@@ -124,12 +125,13 @@ next-starter/
 #### PR / CI / レビュー運用
 
 - `$pr-flow`
-  - `document-update`、`precommit`、`coderabbit-pre-review`、`change-review`、`commit`、`pr-review-merge` を順に使い、PR 提案からマージまでの入口をまとめる
-  - `change-review` が reviewer sub-agent 必須のため、reviewer を使えるセッションを前提にする
+  - `document-update`、`precommit`、`coderabbit-pre-review`、`change-review`、`commit`、`pr-review-merge` を使い、ローカル review は並列で進めながら PR 提案からマージまでの入口をまとめる
+  - `change-review` が `codex-reviewer` sub-agent 必須のため、`codex-reviewer` を使えるセッションを前提にする
+  - local review に finding が出た場合は番号付きで停止し、選ばれた番号だけを修正する
 - `$coderabbit-pre-review`
   - CodeRabbit CLI で `precommit` 後・`commit` 前のローカル差分を事前レビューし、P0/P1/P2 相当で整理する
 - `$change-review`
-  - ローカル差分を reviewer sub-agent で事前レビューし、親エージェントが CodeRabbit と同じ形式で結果を整理する
+  - ローカル差分を `codex-reviewer` sub-agent で事前レビューし、親エージェントが CodeRabbit と同じ形式で結果を整理する
 - `$pr-review-merge`
   - push 後の PR 作成/表示、CI 監視、マージまでを定型化
 
@@ -167,7 +169,7 @@ next-starter/
 - `$coderabbit-pre-review`
   - CodeRabbit CLI を使って `precommit` 後・`commit` 前のローカル差分を review する
 - `$change-review`
-  - ローカル差分を reviewer sub-agent で review し、親エージェントが CodeRabbit と同じ形式で結果を整理する
+  - ローカル差分を `codex-reviewer` sub-agent で review し、親エージェントが CodeRabbit と同じ形式で結果を整理する
 - `$supabase-cli-workflow`
   - Supabase CLI を使って local 開発、link、migration、型生成の流れを整理する
 - `$vercel-cli-workflow`
@@ -182,7 +184,7 @@ next-starter/
 - 新しい util/型/スキーマを追加する前に既存探索する: `$dedupe`
 - PR 提案からマージまでの入口として回す: `$pr-flow`
 - commit 前に CodeRabbit CLI の pre-review を行う: `$coderabbit-pre-review`
-- commit 前に Codex 観点のローカル review を行う: `$change-review`
+- commit 前に `codex-reviewer` のローカル review を行う: `$change-review`
 - push 後の PR/CI/マージ収束だけを回す: `$pr-review-merge`
 - 開発ループ中にサクッと検証する: `$verify-fast`
 - PR 前 / 完了前にフル検証する: `$verify-full`
@@ -408,7 +410,7 @@ GitHub のテンプレ機能は「リポジトリ内のファイル」はコピ�
 
 - CI の job 名や workflow 構成を大きく変えた場合は、Ruleset も更新して Export し直す運用にしてください。
 
-## AI レビュー運用（CodeRabbit CLI + Codex reviewer）
+## AI レビュー運用（CodeRabbit CLI + codex-reviewer）
 
 ここはテンプレ利用者が「同じ導線で再現」できるように、手順を明記します。
 
@@ -419,9 +421,11 @@ GitHub のテンプレ機能は「リポジトリ内のファイル」はコピ�
   - 既定では PR 自動レビューではなく、`coderabbit-pre-review` で左シフトする
 
 - Codex:
-  - 既定では `change-review` で reviewer sub-agent を使ってローカル差分を review する
-  - 親エージェントが reviewer の結果を回収し、CodeRabbit と同じ形式に揃えて提示する
-  - そのため、標準の `pr-flow` は reviewer を使えるセッションを前提にする
+  - 既定では `change-review` で `codex-reviewer` sub-agent を使ってローカル差分を review する
+  - 親エージェントが `codex-reviewer` の結果を回収し、CodeRabbit と同じ形式に揃えて提示する
+  - `coderabbit-pre-review` と `change-review` は並列で走らせる想定
+  - local review に finding が出た場合は番号付きで提示し、選ばれた番号だけを修正する
+  - そのため、標準の `pr-flow` は `codex-reviewer` を使えるセッションを前提にする
   - GitHub 上の `@codex review` は manual fallback としてのみ使う
 
 ### 1) `.coderabbit.yaml` を用意する（完了している前提）
@@ -463,16 +467,34 @@ coderabbit auth status
 - CLI docs: [https://docs.coderabbit.ai/cli](https://docs.coderabbit.ai/cli)
 - Codex integration: [https://docs.coderabbit.ai/cli/codex-integration](https://docs.coderabbit.ai/cli/codex-integration)
 
-### 3) ローカル pre-review を試す（最短の確認手順）
+### 3) codex-reviewer を配置する
+
+- `change-review` と標準 `pr-flow` は `codex-reviewer` custom agent を前提にします。
+- 配置先:
+
+```bash
+$CODEX_HOME/agents/codex-reviewer.toml
+```
+
+- `CODEX_HOME` を使っていない場合の既定:
+
+```bash
+~/.codex/agents/codex-reviewer.toml
+```
+
+- このテンプレ自体は agent 定義を同梱していないため、チームの agent 管理元から `codex-reviewer.toml` を配置してください。
+- 導入確認は `$repo-setup` でも行えます。
+
+### 4) ローカル pre-review を試す（最短の確認手順）
 
 1. ブランチを切って変更を入れる
 2. `precommit` を通す
-3. `coderabbit-pre-review` を実行する
-4. `change-review` を実行する
-5. 必要なら指摘を修正する
+3. `coderabbit-pre-review` と `change-review` を並列で実行する
+4. findings があれば番号付き一覧を確認し、対応する番号を選ぶ
+5. 選んだ番号だけを修正する
 6. commit 後に `pr-flow` で PR へ進む
 
-### 4) CI 失敗を Codex に直させる（手動トリガー）
+### 5) CI 失敗を Codex に直させる（手動トリガー）
 
 Codex は PR コメントでクラウドタスクを開始できます（`review` 以外の指示を `@codex` に続けて書く）。
 
@@ -486,14 +508,14 @@ Codex は PR コメントでクラウドタスクを開始できます（`review
 - 先に CI を通すこと（`verify`）を必須要件として書く
 - 変更範囲を狭く書く（差分が最小になりやすい）
 
-### 5) （任意）GitHub 上の `@codex review` は manual fallback として使える
+### 6) （任意）GitHub 上の `@codex review` は manual fallback として使える
 
 - 既定運用はローカル pre-review です。
 - 必要なら PR コメントで `@codex review` を投げて GitHub 上の review を追加できます。
 - ただし通常フローの `pr-review-merge` はこれを自動では実行しません。
 - Codex review の観点指定だけ必要なら `@codex review for <focus>` が使えます。
 
-### 6) （任意）CodeRabbit GitHub App は手動 fallback として残してよい
+### 7) （任意）CodeRabbit GitHub App は手動 fallback として残してよい
 
 - 既定運用は CLI pre-review です。
 - 必要なら CodeRabbit GitHub App を残し、PR 上で手動レビューを使ってもよいです。

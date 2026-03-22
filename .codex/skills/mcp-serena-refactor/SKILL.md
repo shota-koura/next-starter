@@ -34,7 +34,7 @@ description: MCPの serena を使って、シンボル参照を追跡しなが�
 - sub-agent 利用が明示的に許可されている場合のみ、次を推奨する。
 - 変更経路や所有境界が曖昧なら `code-mapper` を先に使う。
 - 構造改善そのものは `refactoring-specialist` を使う。
-- 変更後の回帰リスク確認には `reviewer` を使う。
+- 変更後の回帰リスク確認には `codex-reviewer` を使う。
 - 新機能追加や仕様変更が主目的なら、この skill ではなく別 skill を使う。
 
 ## 運用ルール

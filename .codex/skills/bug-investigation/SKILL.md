@@ -33,7 +33,7 @@ description: 不具合修正の入口として、症状整理、コード経路�
 - 原因が未確定なら `debugger` を使う。
 - 修正がバックエンド局所なら `backend-developer` を使う。
 - UI/API 跨ぎの修正なら `fullstack-developer` を使う。
-- 修正後のリスク確認には `reviewer` を使う。
+- 修正後のリスク確認には `codex-reviewer` を使う。
 
 ## 出力
 
