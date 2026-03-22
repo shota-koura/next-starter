@@ -169,7 +169,7 @@ fi
 
 # jq: PR/CIスキルで使用。repo-setupは継続する。
 if ! command -v jq >/dev/null 2>&1; then
-  echo "[WARN] jq not found. PR/CI skills use jq (e.g., pr-flow, pr-fix-loop)."
+  echo "[WARN] jq not found. PR/CI skills use jq (e.g., pr-flow, pr-review-merge)."
   echo "[HINT] install jq:"
   case "$OS_KIND" in
     macos) echo "  brew install jq" ;;
@@ -191,6 +191,19 @@ if ! command -v jq >/dev/null 2>&1; then
     *)
       echo "  install jq for your OS"
       ;;
+  esac
+fi
+
+# coderabbit: 任意だが pre-review workflow で便利。repo-setup は継続する。
+if command -v coderabbit >/dev/null 2>&1; then
+  echo "[OK] coderabbit found"
+else
+  echo "[WARN] coderabbit CLI not found. PR前の pre-review workflow may use it."
+  echo "[HINT] install CodeRabbit CLI:"
+  case "$OS_KIND" in
+    macos|linux|wsl) echo "  curl -fsSL https://cli.coderabbit.ai/install.sh | sh" ;;
+    windows) echo "  see https://docs.coderabbit.ai/cli for the latest install steps" ;;
+    *) echo "  install CodeRabbit CLI for your OS" ;;
   esac
 fi
 

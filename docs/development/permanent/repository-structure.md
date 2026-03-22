@@ -18,6 +18,11 @@
 │       │   └── SKILL.md
 │       ├── change-review
 │       │   └── SKILL.md
+│       ├── coderabbit-pre-review
+│       │   ├── SKILL.md
+│       │   └── scripts
+│       │       ├── coderabbit-pre-review.ps1
+│       │       └── coderabbit-pre-review.sh
 │       ├── commit
 │       │   ├── SKILL.md
 │       │   └── scripts
@@ -198,5 +203,5 @@
 │   └── tree.sh
 └── tsconfig.json
 
-67 directories, 126 files
+69 directories, 129 files
 ```

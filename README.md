@@ -4,7 +4,7 @@ Next.js (App Router) + TypeScript + Tailwind CSS のフロントエンドと、P
 
 目的は「保存時」「commit時」「CI」で自動整形・自動修正・静的チェック・テストが回り、AI駆動開発（Codex CLI / Cursor 等）でも品質が崩れにくい状態をテンプレとして使い回せるようにすることです。
 
-加えて、任意で「PRレビュー自動化（CodeRabbit）」と「PRコメント駆動の自動レビュー/自動修正（Codex）」をテンプレの導線として用意します。
+加えて、任意で「CodeRabbit CLI による pre-review」と「PR コメント駆動の自動レビュー/自動修正（Codex）」をテンプレの導線として用意します。
 
 ## Features
 
@@ -49,11 +49,12 @@ Next.js (App Router) + TypeScript + Tailwind CSS のフロントエンドと、P
   - Python: Ruff（`ruff check --fix` と `ruff format`）
 - GitHub Actions（CIで Frontend/Backend のチェックとテストを実行）
 - ブランチ保護（Ruleset）で「CIが通らないと main にマージ不可」にできる
-- （任意）CodeRabbit（GitHub App）
-  - PR 作成時に自動でレビューが付く（挙動は `.coderabbit.yaml` で制御）
-- （任意）Codex Code Review（GitHub の PR コメントで `@codex review`）
-  - Codex 設定で対象リポジトリの Code review を ON にする必要あり
-  - Codex は `AGENTS.md` の `Review guidelines` を参照してレビューする
+- （任意）CodeRabbit CLI
+  - `precommit` 後、`commit` 前のローカル差分を pre-review する
+  - 既定では GitHub PR 自動レビューではなく CLI pre-review を主に使う
+- （任意）Codex Code Review fallback（GitHub の PR コメントで `@codex review`）
+  - 既定運用はローカルの `change-review`
+  - 必要なときだけ GitHub 上の fallback として使う
 - Codex skills（`.codex/skills/`）
   - PR/CI/レビュー運用や検証コマンドを、Codex CLI の skills として定型化（`$pr-flow` など）
   - 詳細は後述の「Codex skills（.codex/skills）」参照
@@ -68,10 +69,10 @@ Next.js (App Router) + TypeScript + Tailwind CSS のフロントエンドと、P
 - （任意）Cursor / VS Code
 - （任意）WSL (Ubuntu) 環境でも動作
 
-AI PR レビュー機能を使う場合の前提:
+AI レビュー機能を使う場合の前提:
 
-- CodeRabbit: リポジトリに GitHub App をインストールできる権限（通常 admin）
-- Codex: Codex を使えるプラン/権限 + GitHub 連携が可能であること
+- CodeRabbit CLI: ローカルで `coderabbit` が使え、`coderabbit auth login` 済みであること
+- Codex: Codex を使えるプラン/権限があること
 
 ## Project Structure
 
@@ -103,7 +104,7 @@ next-starter/
       protect-main.json # Ruleset のエクスポート（Import 用）
   .codex/
     skills/            # Codex skills（PR/CI運用などの手順を定型化）
-  .coderabbit.yaml     # CodeRabbit 設定（任意機能。PRレビュー自動化）
+  .coderabbit.yaml     # CodeRabbit 設定（任意機能。CLI pre-review 用）
   components.json      # shadcn/ui の設定
   package.json
   AGENTS.md
@@ -123,15 +124,13 @@ next-starter/
 #### PR / CI / レビュー運用
 
 - `$pr-flow`
-  - `document-update`、`precommit`、`commit`、`pr-review-merge` を順に使い、PR 提案からマージまでの入口をまとめる
+  - `document-update`、`precommit`、`coderabbit-pre-review`、`change-review`、`commit`、`pr-review-merge` を順に使い、PR 提案からマージまでの入口をまとめる
+- `$coderabbit-pre-review`
+  - CodeRabbit CLI で `precommit` 後・`commit` 前のローカル差分を事前レビューし、P0/P1/P2 相当で整理する
+- `$change-review`
+  - ローカル差分を Codex 観点で事前レビューする。sub-agent 利用が許可されていれば `reviewer` を使う
 - `$pr-review-merge`
-  - push 後の PR 作成/表示、CI 監視、PR コメントでの `@codex review` 投稿、（任意で）CodeRabbit 指摘の確認、マージコマンド提示までを定型化
-- `$ci-log-failed`
-  - CI 失敗時に、失敗チェック名と最新 run の失敗ログ（`gh run view --log-failed`）を抽出する
-- `$coderabbit-digest`
-  - CodeRabbit の Issue コメント / inline コメント / review を `gh api` で抽出し、P0/P1 優先で要点整理する
-- `$ruleset-notes`
-  - Ruleset（required checks）周りの運用メモ（候補が出ない、CodeRabbit を必須化したい等）
+  - push 後の PR 作成/表示、CI 監視、マージまでを定型化
 
 #### 重複抑止（既存探索）
 
@@ -164,6 +163,10 @@ next-starter/
 
 #### 補助 CLI（任意）
 
+- `$coderabbit-pre-review`
+  - CodeRabbit CLI を使って `precommit` 後・`commit` 前のローカル差分を review する
+- `$change-review`
+  - ローカル差分を Codex 観点で review する
 - `$supabase-cli-workflow`
   - Supabase CLI を使って local 開発、link、migration、型生成の流れを整理する
 - `$vercel-cli-workflow`
@@ -177,9 +180,9 @@ next-starter/
 
 - 新しい util/型/スキーマを追加する前に既存探索する: `$dedupe`
 - PR 提案からマージまでの入口として回す: `$pr-flow`
-- push 後のレビュー/CI/マージ収束だけを回す: `$pr-review-merge`
-- CI が落ちたのでログを出す: `$ci-log-failed`
-- CodeRabbit 指摘を一覧して要点整理する: `$coderabbit-digest`
+- commit 前に CodeRabbit CLI の pre-review を行う: `$coderabbit-pre-review`
+- commit 前に Codex 観点のローカル review を行う: `$change-review`
+- push 後の PR/CI/マージ収束だけを回す: `$pr-review-merge`
 - 開発ループ中にサクッと検証する: `$verify-fast`
 - PR 前 / 完了前にフル検証する: `$verify-full`
 
@@ -404,20 +407,20 @@ GitHub のテンプレ機能は「リポジトリ内のファイル」はコピ�
 
 - CI の job 名や workflow 構成を大きく変えた場合は、Ruleset も更新して Export し直す運用にしてください。
 
-## AI PR レビュー自動化（CodeRabbit + Codex）
+## AI レビュー運用（CodeRabbit CLI + Codex reviewer）
 
 ここはテンプレ利用者が「同じ導線で再現」できるように、手順を明記します。
 
 ### 何を実現するか
 
 - CodeRabbit:
-  - PR を作ると自動でレビューが付く
-  - 設定はリポジトリ直下の `.coderabbit.yaml` で制御
+  - ローカル差分を CLI で pre-review する
+  - 既定では PR 自動レビューではなく、`coderabbit-pre-review` で左シフトする
 
 - Codex:
-  - PR コメントで `@codex review` を投げると Codex が GitHub 上でコードレビューする
-  - `@codex` に続けて指示を書くと、PR を文脈としてクラウドタスクを開始できる（例: `@codex fix the CI failures`）
-  - Codex のレビュー方針は `AGENTS.md` の `Review guidelines` を参照する
+  - 既定では `change-review` でローカル差分を review する
+  - sub-agent 利用が許可されていれば `reviewer` を使う
+  - GitHub 上の `@codex review` は manual fallback としてのみ使う
 
 ### 1) `.coderabbit.yaml` を用意する（完了している前提）
 
@@ -431,89 +434,70 @@ GitHub のテンプレ機能は「リポジトリ内のファイル」はコピ�
 - CodeRabbit 設定リファレンス: [https://docs.coderabbit.ai/reference/configuration](https://docs.coderabbit.ai/reference/configuration)
 - YAML validator: [https://docs.coderabbit.ai/reference/yaml-validator](https://docs.coderabbit.ai/reference/yaml-validator)
 
-### 2) CodeRabbit GitHub App をリポジトリにインストールする（リポジトリ毎に必要）
-
-手順（CodeRabbit 公式 Quickstart の流れに沿う）:
-
-1. ブラウザで CodeRabbit にログインする
-   - [https://app.coderabbit.ai](https://app.coderabbit.ai)
-
-2. CodeRabbit のダッシュボードで `Add Repositories` を押す
-
-3. GitHub の権限ダイアログで `Only select repositories` を選ぶ
-
-4. 対象リポジトリを選択する
-
-5. `Install & Authorize` を押して許可する
-
-確認:
-
-- PR を作ると、GitHub 上で CodeRabbit のレビュー（例: `@coderabbitai`）が付く
-
-### 3) Codex を GitHub 連携して「Code review」を有効化する（リポジトリ毎に必要）
-
-概要:
-
-- Codex web で GitHub 連携を行う
-- Codex settings で対象リポジトリの Code review を ON にする
+### 2) CodeRabbit CLI をインストールして認証する
 
 手順:
 
-1. Codex web を開く
-   - [https://chatgpt.com/codex](https://chatgpt.com/codex)
+1. CodeRabbit CLI をインストールする
 
-2. GitHub アカウントを接続する（リポジトリが読める状態にする）
+```bash
+curl -fsSL https://cli.coderabbit.ai/install.sh | sh
+```
 
-3. Codex settings を開き、対象リポジトリの `Code review` を ON にする
-   - 参照: [https://developers.openai.com/codex/integrations/github/](https://developers.openai.com/codex/integrations/github/)
+2. 認証する
 
-確認:
+```bash
+coderabbit auth login
+```
 
-- PR のコメントで `@codex review` を投稿すると、Codex が GitHub の code review として返信する
+3. 状態確認
 
-### 4) PR を作って動作確認する（最短の確認手順）
+```bash
+coderabbit auth status
+```
+
+参考:
+
+- CLI docs: [https://docs.coderabbit.ai/cli](https://docs.coderabbit.ai/cli)
+- Codex integration: [https://docs.coderabbit.ai/cli/codex-integration](https://docs.coderabbit.ai/cli/codex-integration)
+
+### 3) ローカル pre-review を試す（最短の確認手順）
 
 1. ブランチを切って変更を入れる
-2. PR を作る
-3. CodeRabbit がレビューを付けることを確認する
-4. PR コメントで `@codex review` を試す
-5. 必要なら `@codex review for <focus>` で観点を絞る（例: `@codex review for security regressions`）
+2. `precommit` を通す
+3. `coderabbit-pre-review` を実行する
+4. `change-review` を実行する
+5. 必要なら指摘を修正する
+6. commit 後に `pr-flow` で PR へ進む
 
-### 5) CodeRabbit 指摘/CI 失敗を Codex に直させる（手動トリガー）
+### 4) CI 失敗を Codex に直させる（手動トリガー）
 
 Codex は PR コメントでクラウドタスクを開始できます（`review` 以外の指示を `@codex` に続けて書く）。
 
 例:
 
 - `@codex fix the CI failures`
-- `@codex address CodeRabbit P0/P1 comments and make verify pass`
+- `@codex make verify pass with the smallest safe change`
 
 運用のコツ:
 
 - 先に CI を通すこと（`verify`）を必須要件として書く
 - 変更範囲を狭く書く（差分が最小になりやすい）
 
-### 6) （任意）Ruleset で CodeRabbit を required checks に入れる
+### 5) （任意）GitHub 上の `@codex review` は manual fallback として使える
 
-注意:
+- 既定運用はローカル pre-review です。
+- 必要なら PR コメントで `@codex review` を投げて GitHub 上の review を追加できます。
+- ただし通常フローの `pr-review-merge` はこれを自動では実行しません。
+- Codex review の観点指定だけ必要なら `@codex review for <focus>` が使えます。
 
-- GitHub の required checks の候補は「そのチェックが1回以上走っている」必要があります
-- 候補に CodeRabbit が出ない場合は、先に PR を作って CodeRabbit を動かしてから設定してください
+### 6) （任意）CodeRabbit GitHub App は手動 fallback として残してよい
 
-手順（GitHub UI）:
+- 既定運用は CLI pre-review です。
+- 必要なら CodeRabbit GitHub App を残し、PR 上で手動レビューを使ってもよいです。
+- ただし、このテンプレの既定では `.coderabbit.yaml` の `auto_review` と `commit_status` は無効です。
 
-1. `Settings` -> `Rules` -> `Rulesets`
-2. `protect-main`（または該当ルール）を開く
-3. `Require status checks to pass` を有効化
-4. `Status checks that are required` に CodeRabbit のチェックを追加する
-5. `verify`（CI）と合わせて必須化する
-
-### 7) （任意）CodeRabbit で commit status を有効にしておく
-
-CodeRabbit 側は設定で commit status を出せます（デフォルト有効）。
-`.coderabbit.yaml` で `reviews.commit_status` が有効になっているか確認してください。
-
-## Codex Code Review（GitHubで `@codex review`）
+## Codex Code Review fallback（GitHubで `@codex review`）
 
 - PR コメントで `@codex review` を投稿するとレビューが付く
 - レビュー方針は `AGENTS.md` の `Review guidelines` を参照します
@@ -568,16 +552,11 @@ python -m pytest
 
 `.venv` が未作成、または依存未導入の可能性があります。Backend setup を先に完了してください。
 
-### CodeRabbit が PR をレビューしない
+### CodeRabbit CLI が動かない
 
-- CodeRabbit GitHub App が対象リポジトリにインストールされているか確認してください
-- `.coderabbit.yaml` がリポジトリ直下にあるか確認してください
-- Draft PR を対象外にしている設定の場合、Ready for review にする必要があります
-
-### GitHub の Ruleset で CodeRabbit の required check が候補に出ない
-
-- そのチェックが1回以上実行されていない可能性があります
-- 先に PR を作って CodeRabbit を動かしてから、Ruleset の required checks を設定してください
+- `coderabbit auth status` で認証状態を確認してください
+- `coderabbit auth login` を実行してください
+- `coderabbit review --help` が通るか確認してください
 
 ## Notes
 

@@ -52,6 +52,20 @@ function Get-ChangedFilesForMessage {
   return $files | Where-Object { -not [string]::IsNullOrWhiteSpace($_) } | Sort-Object -Unique
 }
 
+function Test-AllowedGuardedFile {
+  param([string]$Path)
+
+  if ([string]::IsNullOrWhiteSpace($env:ALLOW_GUARDED_FILES)) {
+    return $false
+  }
+
+  $allowed = $env:ALLOW_GUARDED_FILES.Split(",") |
+    ForEach-Object { $_.Trim() } |
+    Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+
+  return $allowed -contains $Path
+}
+
 function Get-CommitMessage {
   param([string[]]$Files)
 
@@ -171,6 +185,10 @@ $forbidden = [regex]::new('^(\.github/|\.coderabbit\.ya?ml$|package(-lock)?\.jso
 $violation = $false
 foreach ($f in $files) {
   if ($forbidden.IsMatch($f)) {
+    if (Test-AllowedGuardedFile $f) {
+      Write-Host "[WARN] 明示承認済みの guarded file を許可します: $f"
+      continue
+    }
     Write-Host "[ERROR] 事前確認が必要な領域に変更があります: $f"
     $violation = $true
   }
