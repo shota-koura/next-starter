@@ -4,14 +4,14 @@ language: 'ja-JP'
 reviews:
   profile: 'chill'
   high_level_summary: true
-  review_status: true
+  review_status: false
 
   auto_review:
-    enabled: true
+    enabled: false
     drafts: false
 
-  # PRのChecksに status を出す（Rulesetのrequired checksに使える）
-  commit_status: true
+  # CLI pre-review を主に使うため、PR 上の status は既定で出さない
+  commit_status: false
   fail_commit_status: false
 
   # Walkthroughに "Prompt for AI Agents" を含める（Codexに渡しやすい）

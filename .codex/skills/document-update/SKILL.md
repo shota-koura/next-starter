@@ -7,13 +7,13 @@ description: PR作成/更新の前に、docs/development/.steering/ と AGENTS.m
 
 - PR の差分内容と、作業ドキュメント（`docs/development/.steering/`）の記載が乖離しないようにする（ただし「ステアリング不要」と合意済みの作業は対象外）。
 - 技術選定・実装方針・運用ルールが変わった場合にのみ `AGENTS.md` を最小差分で更新する（頻繁な編集はしない）。
-- `pr-flow` / `pr-fix-loop` と連動し、PR作成/更新の直前に「ドキュメント整合」を挟めるようにする。
+- `pr-flow` / `pr-review-merge` と連動し、PR作成/更新の直前に「ドキュメント整合」を挟めるようにする。
 
 ## いつ使うか
 
 - PR を作る直前（推奨: `$pr-flow` の前）。
 - 既にPRがある場合でも、差分の方向性が変わった/追加の作業が入ったとき（push前の追加コミットとして）。
-- `pr-fix-loop` で修正方針が変わり、`docs/development/.steering/*/design.md` や `tasklist.md` の更新が必要になったとき。
+- `pr-review-merge` で修正方針が変わり、`docs/development/.steering/*/design.md` や `tasklist.md` の更新が必要になったとき。
 - 「ステアリング不要」と合意済みの作業では、`docs/development/.steering/` の更新は行わない（`AGENTS.md` の更新が必要な場合のみ本 skill を使う）。
 
 ## 前提

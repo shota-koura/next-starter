@@ -43,6 +43,13 @@ collect_changed_files() {
   } | sort -u
 }
 
+is_allowed_guarded_file() {
+  local target="$1"
+  [[ -z "${ALLOW_GUARDED_FILES:-}" ]] && return 1
+  local normalized=",${ALLOW_GUARDED_FILES// /},"
+  [[ "$normalized" == *",$target,"* ]]
+}
+
 infer_commit_msg() {
   local files=("$@")
   if [[ ${#files[@]} -eq 0 ]]; then
@@ -171,6 +178,10 @@ VIOLATION=0
 while IFS= read -r f; do
   [[ -z "$f" ]] && continue
   if echo "$f" | grep -Eq "$FORBIDDEN_RE"; then
+    if is_allowed_guarded_file "$f"; then
+      echo "[WARN] 明示承認済みの guarded file を許可します: $f"
+      continue
+    fi
     echo "[ERROR] 事前確認が必要な領域に変更があります: $f"
     VIOLATION=1
   fi

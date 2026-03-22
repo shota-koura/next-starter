@@ -1,6 +1,6 @@
 ---
 name: pr-flow
-description: document-update、precommit、commit、pr-review-merge を順に実行し、PR 提案からマージとローカル main 同期までの標準順序をまとめて案内する
+description: document-update、precommit、coderabbit-pre-review、change-review、commit、pr-review-merge を順に実行し、PR 提案からマージとローカル main 同期までの標準順序をまとめて案内する
 ---
 
 # PR Flow
@@ -8,13 +8,13 @@ description: document-update、precommit、commit、pr-review-merge を順に実
 ## 目的
 
 - PR 提案からマージとローカル `main` 同期までの標準順序を 1 つの入口で扱えるようにする。
-- 既存の `document-update`、`precommit`、`commit`、`pr-review-merge` を置き換えず、実行順だけを固定する。
+- 既存の `document-update`、`precommit`、`coderabbit-pre-review`、`change-review`、`commit`、`pr-review-merge` を置き換えず、実行順だけを固定する。
 - 手順漏れを減らしつつ、各 skill の責務は分けたまま保つ。
 
 ## いつ使うか
 
 - PR を新規に作る、または更新して最後まで進めたいとき。
-- 毎回 `document-update -> precommit -> commit -> pr-review-merge` を明示するのが煩雑なとき。
+- 毎回 `document-update -> precommit -> coderabbit-pre-review -> change-review -> commit -> pr-review-merge` を明示するのが煩雑なとき。
 
 ## この skill の役割
 
@@ -26,8 +26,10 @@ description: document-update、precommit、commit、pr-review-merge を順に実
 
 1. 必要なら `$document-update`
 2. `$precommit`
-3. `COMMIT_MSG` を設定して `$commit`
-4. push 後に `$pr-review-merge`
+3. `$coderabbit-pre-review`
+4. `$change-review`
+5. `COMMIT_MSG` を設定して `$commit`
+6. push 後に `$pr-review-merge`
 
 ## 実行ガイド
 
@@ -42,7 +44,23 @@ description: document-update、precommit、commit、pr-review-merge を順に実
 $precommit
 ```
 
-### 3) コミット
+### 3) CodeRabbit pre-review
+
+CodeRabbit CLI で pre-review を行い、修正要否を整理してから commit に進む。
+
+```text
+$coderabbit-pre-review
+```
+
+### 4) Codex 観点のローカルレビュー
+
+Codex 観点のローカル差分レビューを行い、重大な finding があれば commit 前に修正する。
+
+```text
+$change-review
+```
+
+### 5) コミット
 
 ```bash
 export COMMIT_MSG='type(scope): 日本語要約'
@@ -52,7 +70,7 @@ export COMMIT_MSG='type(scope): 日本語要約'
 $commit
 ```
 
-### 4) PR 作成からマージとローカル同期まで
+### 6) PR 作成からマージとローカル同期まで
 
 ```text
 $pr-review-merge
@@ -61,6 +79,8 @@ $pr-review-merge
 ## 停止条件
 
 - `document-update` が大きな設計判断を要求して停止した場合
+- `coderabbit-pre-review` が修正判断や認証不足で停止した場合
+- `change-review` が blocking issue を返した場合
 - `commit` がガードレール違反を検知した場合
 - `pr-review-merge` が禁止領域変更や人間判断を要求した場合
 

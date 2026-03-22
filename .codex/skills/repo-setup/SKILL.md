@@ -1,13 +1,13 @@
 ---
 name: repo-setup
-description: git clone（任意）後に Frontend/Backend の初期セットアップと「Recommended first run」を実行し、必要ツール（gh, supabase, vercel, playwright等）を検知して不足時はOS別インストール手順を提示する
+description: git clone（任意）後に Frontend/Backend の初期セットアップと「Recommended first run」を実行し、必要ツール（gh, coderabbit, supabase, vercel, playwright等）を検知して不足時はOS別インストール手順を提示する
 ---
 
 ## 目的
 
 - README.md の「Quick Start」「Recommended first run（初回セットアップの推奨手順）」を、ターミナルで再現可能な定型手順として固定する。
 - clone 直後に依存関係導入と静的解析/テストを一通り通し、クリーンな状態で開発を開始できるようにする。
-- PR/CI 運用に必要な `gh` と、補助 CLI（`supabase`, `vercel`, `playwright`）の存在確認を行い、未導入なら OS を判定してインストール手順を提示する。
+- PR/CI 運用に必要な `gh` と、補助 CLI（`coderabbit`, `supabase`, `vercel`, `playwright`）の存在確認を行い、未導入なら OS を判定してインストール手順を提示する。
 
 ## いつ使うか
 
@@ -26,7 +26,8 @@ description: git clone（任意）後に Frontend/Backend の初期セットア�
 - `gh` は PR/CI 運用に必要（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
 - `tree` は `scripts/tree.sh` に必要（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
 - `rg` は `$dedupe` に推奨（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
-- `jq` は PR/CI スキル（`pr-flow` / `pr-fix-loop`）で使用（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
+- `jq` は PR/CI スキル（`pr-flow` / `pr-review-merge`）で使用（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
+- `coderabbit` は PR 前の pre-review に使う（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
 - `supabase` は Supabase ローカル開発や型生成で便利（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
 - `vercel` は env pull や deploy 確認で便利（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
 - `playwright` は E2E の再実行や trace 確認で便利。基本は MCP を優先してよいが、CLI も利用可能にしておくと検証が安定する。
@@ -267,7 +268,7 @@ fi
 
 # jq: PR/CIスキルで使用。repo-setupは継続する。
 if ! command -v jq >/dev/null 2>&1; then
-  echo "[WARN] jq not found. PR/CI skills use jq (e.g., pr-flow, pr-fix-loop)."
+  echo "[WARN] jq not found. PR/CI skills use jq (e.g., pr-flow, pr-review-merge)."
   echo "[HINT] install jq:"
   case "$OS_KIND" in
     macos) echo "  brew install jq" ;;
@@ -289,6 +290,19 @@ if ! command -v jq >/dev/null 2>&1; then
     *)
       echo "  install jq for your OS"
       ;;
+  esac
+fi
+
+# coderabbit: 任意だが pre-review workflow で便利。repo-setup は継続する。
+if command -v coderabbit >/dev/null 2>&1; then
+  echo "[OK] coderabbit found"
+else
+  echo "[WARN] coderabbit CLI not found. PR前の pre-review workflow may use it."
+  echo "[HINT] install CodeRabbit CLI:"
+  case "$OS_KIND" in
+    macos|linux|wsl) echo "  curl -fsSL https://cli.coderabbit.ai/install.sh | sh" ;;
+    windows) echo "  see https://docs.coderabbit.ai/cli for the latest install steps" ;;
+    *) echo "  install CodeRabbit CLI for your OS" ;;
   esac
 fi
 

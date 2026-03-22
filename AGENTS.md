@@ -454,7 +454,7 @@ Python / Backend:
 
 - PR を作成/更新する前の標準フロー（必須）:
   - `$pr-flow`
-  - `pr-flow` の内部で、必要に応じて `$document-update` → `$precommit` → `$commit` → `$pr-review-merge` を順に使う
+  - `pr-flow` の内部で、必要に応じて `$document-update` → `$precommit` → `$coderabbit-pre-review` → `$change-review` → `$commit` → `$pr-review-merge` を順に使う
   - `pr-review-merge` は merge 後、既定でローカルを `main` に戻して `origin/main` へ同期する
 
 - PR 作成〜CI待ち（入口）: `bash scripts/pr.sh`（無い場合は `gh` でフォールバック）
@@ -494,13 +494,14 @@ Python / Backend:
 - コミット（verify-full 実行後に add/commit/push）: `commit`
 - 重複検知/統合（既存探索の標準手順）: `dedupe`
 - ローカル差分の事前レビュー: `change-review`
+- CodeRabbit CLI による pre-review: `coderabbit-pre-review`
 - 不具合調査の入口整理: `bug-investigation`
 - 新規 API 追加前の設計整理: `api-add-design`
 - 既存 API 変更前の設計整理: `api-modify-design`
 - LLM 機能変更前の設計整理: `llm-change-design`
 - 多段階タスクの工程設計: `task-orchestration`
 - PR 提案からマージとローカル `main` 同期までの入口: `pr-flow`
-- push後の PR レビュー/CI/マージ収束と post-merge sync: `pr-review-merge`
+- push後の PR 作成/CI/マージ収束と post-merge sync: `pr-review-merge`
 - 初期セットアップ（Frontend/Backend/ツール検知）: `repo-setup`
 - Tailwind CSS v4 の導入: `setup-tailwind-frontend`
 - skills 棚卸し提案の作成: `skills-retro`
@@ -519,6 +520,7 @@ Python / Backend:
 
 ### 補助 CLI（任意）
 
+- CodeRabbit CLI を使う pre-review: `coderabbit-pre-review`
 - Supabase CLI を使うワークフロー: `supabase-cli-workflow`
 - Vercel CLI を使うワークフロー: `vercel-cli-workflow`
 

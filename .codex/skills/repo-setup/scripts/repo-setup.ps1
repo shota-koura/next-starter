@@ -125,7 +125,7 @@ if (-not (Get-Command rg -ErrorAction SilentlyContinue)) {
 }
 
 if (-not (Get-Command jq -ErrorAction SilentlyContinue)) {
-  Write-Host "[WARN] jq not found. PR/CI skills use jq (e.g., pr-flow, pr-fix-loop)."
+  Write-Host "[WARN] jq not found. PR/CI skills use jq (e.g., pr-flow, pr-review-merge)."
   Write-Host "[HINT] install jq:"
   switch ($osKind) {
     "macos" { Write-Host "  brew install jq" }
@@ -136,6 +136,20 @@ if (-not (Get-Command jq -ErrorAction SilentlyContinue)) {
       Write-Host "  (or) choco install jq"
     }
     default { Write-Host "  install jq for your OS" }
+  }
+}
+
+if (Get-Command coderabbit -ErrorAction SilentlyContinue) {
+  Write-Host "[OK] coderabbit found"
+} else {
+  Write-Host "[WARN] coderabbit CLI not found. PR前の pre-review workflow may use it."
+  Write-Host "[HINT] install CodeRabbit CLI:"
+  switch ($osKind) {
+    "macos" { Write-Host "  curl -fsSL https://cli.coderabbit.ai/install.sh | sh" }
+    "linux" { Write-Host "  curl -fsSL https://cli.coderabbit.ai/install.sh | sh" }
+    "wsl" { Write-Host "  curl -fsSL https://cli.coderabbit.ai/install.sh | sh" }
+    "windows" { Write-Host "  see https://docs.coderabbit.ai/cli for the latest install steps" }
+    default { Write-Host "  install CodeRabbit CLI for your OS" }
   }
 }
 
