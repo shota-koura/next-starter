@@ -1,13 +1,13 @@
 ---
 name: pr-flow
-description: document-update、precommit、commit、pr-review-merge を順に実行し、PR 提案からマージまでの標準順序をまとめて案内する
+description: document-update、precommit、commit、pr-review-merge を順に実行し、PR 提案からマージとローカル main 同期までの標準順序をまとめて案内する
 ---
 
 # PR Flow
 
 ## 目的
 
-- PR 提案からマージまでの標準順序を 1 つの入口で扱えるようにする。
+- PR 提案からマージとローカル `main` 同期までの標準順序を 1 つの入口で扱えるようにする。
 - 既存の `document-update`、`precommit`、`commit`、`pr-review-merge` を置き換えず、実行順だけを固定する。
 - 手順漏れを減らしつつ、各 skill の責務は分けたまま保つ。
 
@@ -52,7 +52,7 @@ export COMMIT_MSG='type(scope): 日本語要約'
 $commit
 ```
 
-### 4) PR 作成からマージまで
+### 4) PR 作成からマージとローカル同期まで
 
 ```text
 $pr-review-merge
@@ -72,4 +72,4 @@ $pr-review-merge
 ## 完了条件
 
 - 実行すべき skill の順序が明確である。
-- PR 提案からマージまでのどこで止まるか説明できる。
+- PR 提案からマージとローカル `main` 同期までのどこで止まるか説明できる。
