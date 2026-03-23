@@ -4,7 +4,7 @@ description: >-
   requirements.md または requirement.md を読み、同じディレクトリの tasklist.md を
   着手順ベース・1タスク1行・phaseタグ付きで生成または更新する skill。
   使う場面: 要件はあるが tasklist が未整備、または tasklist を repo 構造・一次情報・文書整合に合わせて再構成したいとき。
-  使わない場面: 単なる進捗更新だけをしたいとき、コードレビューが目的のとき、design.md 単独作成が目的のとき、
+  使わない場面: 単なる進捗更新だけをしたいとき、コードレビューが目的のとき、implementation-plan.md 単独作成が目的のとき、
   対象 requirements ファイルが曖昧なとき。
 ---
 
@@ -14,7 +14,7 @@ description: >-
 
 この skill の仕事は、対象作業の要求定義を読み、実装可能な `tasklist.md` を作ることです。  
 `tasklist.md` の生成・更新に集中し、それ以外のドキュメントやコードは原則として直接変更しません。  
-README や `design.md` の更新が必要なら、実施そのものではなく `tasklist.md` にタスクとして記載します。
+README や `implementation-plan.md` の更新が必要なら、実施そのものではなく `tasklist.md` にタスクとして記載します。
 
 ## 入力
 
@@ -24,7 +24,7 @@ README や `design.md` の更新が必要なら、実施そのものではなく
 
 任意:
 
-- 同じディレクトリの `design.md`
+- 同じディレクトリの `implementation-plan.md`
 - `docs/development/.steering/steering.md`
 - リポジトリの `README.md`
 - 近傍の `AGENTS.md`
@@ -57,7 +57,7 @@ README や `design.md` の更新が必要なら、実施そのものではなく
 ### 1. 対象作業ディレクトリを特定する
 
 - 指定された `requirements.md` または `requirement.md` のあるディレクトリを対象作業ディレクトリとする
-- 同じディレクトリに `design.md` と `tasklist.md` があるか確認する
+- 同じディレクトリに `implementation-plan.md` と `tasklist.md` があるか確認する
 - 近傍の `AGENTS.md`、必要に応じて `README.md` と `steering.md` を読む
 
 ### 2. 要件を読み、タスク化の前提を固定する
@@ -78,7 +78,7 @@ README や `design.md` の更新が必要なら、実施そのものではなく
 
 - `discovery`: 仕様確認、既存調査、未決事項の整理
 - `repo changes`: 実装・設定・ファイル追加変更
-- `docs updates`: README、steering、design、永続ドキュメントなどの更新タスク
+- `docs updates`: README、steering、implementation-plan、永続ドキュメントなどの更新タスク
 - `validation`: 動作確認、lint、test、verify、手順確認
 
 重要:
@@ -128,7 +128,7 @@ README や `design.md` の更新が必要なら、実施そのものではなく
 
 依頼内容:
 
-- `README.md`、`requirements.md`、`design.md`（あれば）、`steering.md`、`tasklist.md` の整合性確認
+- `README.md`、`requirements.md`、`implementation-plan.md`（あれば）、`steering.md`、`tasklist.md` の整合性確認
 - 抜け漏れ、順序不備、依存関係の見落とし、検証不足の指摘
 - `tasklist.md` に対する add / reorder / clarify / remove の提案
 - 各タスクの phase tag が妥当かの確認
@@ -178,7 +178,7 @@ README や `design.md` の更新が必要なら、実施そのものではなく
 ## 対象
 
 - 参照: `requirements.md`
-- 追加参照: `design.md` / `README.md` / `steering.md` / `AGENTS.md`
+- 追加参照: `implementation-plan.md` / `README.md` / `steering.md` / `AGENTS.md`
 - 目的: この作業を実行可能な順序に分解する
 
 ## タスクリスト
@@ -189,7 +189,7 @@ README や `design.md` の更新が必要なら、実施そのものではなく
 4. [ ] 実装対象ファイルと追加・更新方針を確定する [phase: repo changes]
 5. [ ] 必要なファイル追加・設定変更・実装変更を行う [phase: repo changes]
 6. [ ] 更新が必要なドキュメントを洗い出す [phase: docs updates]
-7. [ ] 必要な README / steering / design などを更新する [phase: docs updates]
+7. [ ] 必要な README / steering / implementation-plan などを更新する [phase: docs updates]
 8. [ ] 必要な確認コマンドを実行する [phase: validation]
 9. [ ] 受け入れ条件に照らして完了確認する [phase: validation]
 
@@ -219,7 +219,7 @@ README や `design.md` の更新が必要なら、実施そのものではなく
 
 - コードレビュー
 - 実装修正
-- `design.md` の全面作成
+- `implementation-plan.md` の全面作成
 - requirements のスコープを書き換えること
 - README や他文書の直接更新
 - tasklist と無関係な repo 全体整理

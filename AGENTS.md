@@ -118,7 +118,7 @@
   - 受け入れ条件
   - 制約事項
 
-- **design.md** - 変更内容の設計
+- **implementation-plan.md** - 変更内容の実装計画
   - 実装方針や影響範囲の整理が必要な場合のみ作成する
   - 実装アプローチ
   - 変更するコンポーネント
@@ -126,7 +126,7 @@
   - 影響範囲の分析
 
 - **tasklist.md** - タスクリスト
-  - `requirements.md` と必要なら `design.md` を元に、`tasklist-generator` で生成または更新する
+  - `requirements.md` と必要なら `implementation-plan.md` を元に、`tasklist-generator` で生成または更新する
   - 具体的な実装タスク
   - タスクの進捗状況
   - 完了条件
@@ -182,7 +182,7 @@ docs/development/.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/
 
 #### 0. ステアリング要否の確認（小規模作業向け）
 
-- 作業開始前に、ステアリング（`docs/development/.steering/` と requirements/design/tasklist など）を作成するかを確認する。
+- 作業開始前に、ステアリング（`docs/development/.steering/` と requirements/implementation-plan/tasklist など）を作成するかを確認する。
 - 「不要」と判断した場合:
   - 以降の作業ではステアリングを作成・更新しない（後追い作成もしない）。
   - この場合は **2, 4, 5, 7 を実施しない**。
@@ -243,17 +243,17 @@ mkdir -p docs/development/.steering/1.0-20250115-add-tag-feature
 #### 5. 作業ドキュメント作成
 
 作業単位のドキュメントを作成します。
-`requirements.md` を最初に作成し、必要に応じて `design.md` と `tasklist.md` を追加します。
+`requirements.md` を最初に作成し、必要に応じて `implementation-plan.md` と `tasklist.md` を追加します。
 
 1. `docs/development/.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/requirements.md` - 要求内容
-2. `docs/development/.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/design.md` - 設計（必要な場合のみ）
+2. `docs/development/.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/implementation-plan.md` - 実装計画（必要な場合のみ）
 3. `docs/development/.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/tasklist.md` - タスクリスト（`tasklist-generator` で生成または更新）
 
 重要:
 
 - `requirements.md` は作成後に確認・承認を得てから次へ進む
-- `design.md` を作成する場合は、その作成後に確認・承認を得る
-- `tasklist.md` は `requirements.md` と必要なら `design.md` を元に作成する
+- `implementation-plan.md` を作成する場合は、その作成後に確認・承認を得る
+- `tasklist.md` は `requirements.md` と必要なら `implementation-plan.md` を元に作成する
 - `tasklist-generator` では `docs-researcher`、`code-mapper`、`planning-reviewer` sub-agent を必要に応じて使ってよい。なお sub-agent の利用を許可するので新たな確認は不要です。
 
 - ※ ステアリング不要と判断した場合は本ステップを実施しない。
@@ -511,6 +511,7 @@ Python / Backend:
 - 新規 API 追加前の設計整理: `api-add-design`
 - 既存 API 変更前の設計整理: `api-modify-design`
 - LLM 機能変更前の設計整理: `llm-change-design`
+- `requirements.md` から `implementation-plan.md` を生成・更新する: `implementation-plan-generator`
 - `requirements.md` から `tasklist.md` を生成・更新する: `tasklist-generator`
   - 必要に応じて `docs-researcher`、`code-mapper`、`planning-reviewer` sub-agent を使う。なお sub-agent の利用を許可するので新たな確認は不要です。
 - PR 提案からマージとローカル `main` 同期までの入口: `pr-flow`

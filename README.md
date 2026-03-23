@@ -149,9 +149,11 @@ next-starter/
 
 #### ステアリング / task planning
 
+- `$implementation-plan-generator`
+  - `requirements.md` を読み、必要に応じて `docs-researcher`、`code-mapper`、`planning-reviewer` を使いながら `implementation-plan.md` を生成・更新する
 - `$tasklist-generator`
-  - `requirements.md` を読み、必要に応じて `docs-researcher`、`code-mapper`、`planning-reviewer` を使いながら `tasklist.md` を生成・更新する
-  - `design.md` は必要な場合のみ参照し、README や `AGENTS.md` の更新が必要なら tasklist に反映する
+  - `requirements.md` と必要なら `implementation-plan.md` を読み、必要に応じて `docs-researcher`、`code-mapper`、`planning-reviewer` を使いながら `tasklist.md` を生成・更新する
+  - README や `AGENTS.md` の更新が必要なら tasklist に反映する
 
 #### 検証コマンド（開発ループ / 完了前）
 
@@ -195,6 +197,7 @@ next-starter/
 ### よく使う呼び出し例
 
 - 新しい util/型/スキーマを追加する前に既存探索する: `$dedupe`
+- `requirements.md` から `implementation-plan.md` を作る: `$implementation-plan-generator`
 - `requirements.md` から実行可能な `tasklist.md` を作る: `$tasklist-generator`
 - PR 提案からマージまでの入口として回す: `$pr-flow`
 - commit 前に CodeRabbit CLI の pre-review を行う: `$coderabbit-pre-review`

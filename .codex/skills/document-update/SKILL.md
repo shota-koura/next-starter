@@ -1,6 +1,6 @@
 ---
 name: document-update
-description: PR作成/更新の前に、docs/development/.steering/、AGENTS.md、README.md を最小差分で同期する（必要なときだけ更新し、必要ならドキュメントだけを追加コミットして push する）
+description: PR作成/更新の前に、docs/development/.steering/、`.codex/skills/*/SKILL.md`、AGENTS.md、README.md を最小差分で同期する（必要なときだけ更新し、必要ならドキュメントだけを追加コミットして push する）
 ---
 
 ## 目的
@@ -8,13 +8,14 @@ description: PR作成/更新の前に、docs/development/.steering/、AGENTS.md�
 - PR の差分内容と、作業ドキュメント（`docs/development/.steering/`）の記載が乖離しないようにする（ただし「ステアリング不要」と合意済みの作業は対象外）。
 - 技術選定・実装方針・運用ルールが変わった場合にのみ `AGENTS.md` を最小差分で更新する（頻繁な編集はしない）。
 - README の入口説明や skill 導線が変わった場合にのみ `README.md` を最小差分で更新する。
+- skill 本文の導線や責務説明が変わった場合にのみ `.codex/skills/*/SKILL.md` を最小差分で更新する。
 - `pr-flow` / `pr-review-merge` と連動し、PR作成/更新の直前に「ドキュメント整合」を挟めるようにする。
 
 ## いつ使うか
 
 - PR を作る直前（推奨: `$pr-flow` の前）。
 - 既にPRがある場合でも、差分の方向性が変わった/追加の作業が入ったとき（push前の追加コミットとして）。
-- `pr-review-merge` で修正方針が変わり、`docs/development/.steering/*/design.md` や `tasklist.md` の更新が必要になったとき。
+- `pr-review-merge` で修正方針が変わり、`docs/development/.steering/*/implementation-plan.md` や `tasklist.md` の更新が必要になったとき。
 - README の入口説明や AGENTS の恒久ルールとの整合を取りたいとき。
 - 「ステアリング不要」と合意済みの作業では、`docs/development/.steering/` の更新は行わない（`AGENTS.md` の更新が必要な場合のみ本 skill を使う）。
 
@@ -40,6 +41,7 @@ description: PR作成/更新の前に、docs/development/.steering/、AGENTS.md�
 - `docs/development/.steering/<作業ID-...>/tasklist.md` は「自分の作業分」だけ更新する。番号や順序の全体編集は禁止。追加は末尾に追記。
 - `AGENTS.md` は「技術選定/実装方針/運用ルール」が変わった場合にのみ更新する。表現の言い換えや再構成のための編集は禁止。
 - `README.md` は入口説明、導線、同梱 skill 一覧が変わった場合にのみ更新する。恒久ルールの本文を `AGENTS.md` と二重管理しない。
+- `.codex/skills/*/SKILL.md` は skill 本文の責務・入出力・手順に変更がある場合にのみ更新する。scripts など実行ファイルは対象外で、表現の言い換えだけの編集は禁止。
 - この skill は原則として「ドキュメントだけ」を変更する。コード変更やリファクタは行わない。
 - もしドキュメント更新のために大きな設計判断が必要になったら停止し、差分と判断ポイントを要約して報告する。
 
@@ -128,7 +130,7 @@ fi
 
 - ここは機械的に「状態=doing」へ寄せるのが基本。`done` は merge 後に更新する（必要なら同 skill を再実行）。
 
-### 4) 作業ディレクトリ配下（requirements/design/tasklist）を更新（必要な場合のみ）
+### 4) 作業ディレクトリ配下（requirements/implementation-plan/tasklist）を更新（必要な場合のみ）
 
 対象候補:
 
@@ -138,7 +140,7 @@ fi
 更新方針（最小差分）:
 
 - `tasklist.md`: PR差分で実装完了しているタスクを `done` にする。抜けている必須タスクがあれば末尾に追記する。並び替えはしない。
-- `design.md`: 実装方針が当初と変わった場合のみ、差分が出た箇所に追記/修正する（全面書き換え禁止）。未作成であること自体は、現行運用で不要なら問題にしない。
+- `implementation-plan.md`: 実装方針が当初と変わった場合のみ、差分が出た箇所に追記/修正する（全面書き換え禁止）。未作成であること自体は、現行運用で不要なら問題にしない。
 - `requirements.md`: 受け入れ条件・要件の解釈が変わった場合のみ、追記または最小修正する。
 - `README.md`: 入口、skill 導線、参照先が変わった場合のみ更新する。
 
@@ -160,13 +162,13 @@ fi
 ```bash
 DOC_ONLY_OK=1
 
-CHANGED_NOW="$(git status --porcelain | sed -E 's/^.. //')"
+CHANGED_NOW="$(git status --porcelain --untracked-files=all | sed -E 's/^.. //')"
 echo "[INFO] working tree changes:"
 echo "$CHANGED_NOW"
 
 while IFS= read -r f; do
   [[ -z "$f" ]] && continue
-  if [[ "$f" != docs/development/.steering/* && "$f" != docs/development/permanent/repository-structure.md && "$f" != AGENTS.md && "$f" != README.md ]]; then
+  if [[ "$f" != docs/development/.steering/* && "$f" != docs/development/permanent/repository-structure.md && "$f" != .codex/skills/*/SKILL.md && "$f" != AGENTS.md && "$f" != README.md ]]; then
     echo "[ERROR] document-update でドキュメント以外が変更されています: $f"
     DOC_ONLY_OK=0
   fi
@@ -184,7 +186,7 @@ fi
 DOC_COMMIT="${DOC_COMMIT:-1}"
 DOC_PUSH="${DOC_PUSH:-1}"
 
-CHANGED_DOCS="$(git status --porcelain | awk '{print $2}' | sed '/^$/d' || true)"
+CHANGED_DOCS="$(git status --porcelain --untracked-files=all | awk '{print $2}' | sed '/^$/d' || true)"
 if [[ -z "$CHANGED_DOCS" ]]; then
   echo "[OK] ドキュメント更新なし"
   exit 0
@@ -199,7 +201,7 @@ if [[ "$DOC_COMMIT" != "1" ]]; then
 fi
 
 # ドキュメントだけをステージ
-git add docs/development/.steering docs/development/permanent/repository-structure.md AGENTS.md README.md
+git add docs/development/.steering .codex/skills/*/SKILL.md docs/development/permanent/repository-structure.md AGENTS.md README.md
 
 # ステージ内容の確認（要点）
 git diff --cached --name-only
@@ -216,6 +218,6 @@ fi
 
 ## 完了条件
 
-- `docs/development/.steering/` と `AGENTS.md` が必要な範囲で更新され、PR差分と乖離していない。
+- `docs/development/.steering/`、`.codex/skills/*/SKILL.md`、`AGENTS.md`、`README.md` が必要な範囲で更新され、PR差分と乖離していない。
 - 無関係なドキュメント編集（全体整形/並び替え）が無い。
 - 変更が発生した場合、ドキュメントだけの commit/push が完了している（DOC_COMMIT=1 の場合）。
