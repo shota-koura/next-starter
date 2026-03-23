@@ -6,6 +6,20 @@
 .
 ├── .coderabbit.yaml
 ├── .codex
+│   ├── agents
+│   │   ├── api-designer.toml
+│   │   ├── backend-developer.toml
+│   │   ├── cloud-architect.toml
+│   │   ├── code-mapper.toml
+│   │   ├── codex-reviewer.toml
+│   │   ├── debugger.toml
+│   │   ├── docs-researcher.toml
+│   │   ├── fullstack-developer.toml
+│   │   ├── llm-architect.toml
+│   │   ├── multi-agent-coordinator.toml
+│   │   ├── planning-reviewer.toml
+│   │   ├── refactoring-specialist.toml
+│   │   └── workflow-orchestrator.toml
 │   ├── config.toml
 │   └── skills
 │       ├── api-add-design
@@ -60,7 +74,7 @@
 │       │   └── SKILL.md
 │       ├── supabase-cli-workflow
 │       │   └── SKILL.md
-│       ├── task-orchestration
+│       ├── tasklist-generator
 │       │   └── SKILL.md
 │       ├── vercel-cli-workflow
 │       │   └── SKILL.md
@@ -203,5 +217,5 @@
 │   └── tree.sh
 └── tsconfig.json
 
-69 directories, 129 files
+70 directories, 142 files
 ```

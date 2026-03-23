@@ -5,6 +5,7 @@
 開発を進めるうえで遵守すべき標準ルールを定義します。
 
 本ファイルは、当面リポジトリ全体の共通指示を 1 ファイルに統合して記載します（将来、必要に応じてサブディレクトリに `AGENTS.md` / `AGENTS.override.md` を追加する可能性はあります）。
+このファイルを、agent 向け恒久ルールの一次ソースとして扱います。`README.md` は人間向けの入口と概要、skills は実行手順の詳細を担います。
 
 ## 言語
 
@@ -111,18 +112,21 @@
 作業完了後は参照用として保持されますが、新しい作業では新しいディレクトリを作成します。
 
 - **requirements.md** - 今回の作業の要求内容
+  - ステアリングを作成する場合の初期必須ドキュメント
   - 変更・追加する機能の説明
   - ユーザーストーリー
   - 受け入れ条件
   - 制約事項
 
 - **design.md** - 変更内容の設計
+  - 実装方針や影響範囲の整理が必要な場合のみ作成する
   - 実装アプローチ
   - 変更するコンポーネント
   - データ構造の変更
   - 影響範囲の分析
 
 - **tasklist.md** - タスクリスト
+  - `requirements.md` と必要なら `design.md` を元に、`tasklist-generator` で生成または更新する
   - 具体的な実装タスク
   - タスクの進捗状況
   - 完了条件
@@ -178,7 +182,7 @@ docs/development/.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/
 
 #### 0. ステアリング要否の確認（小規模作業向け）
 
-- 作業開始前に、ステアリング（`docs/development/.steering/` と requirements/design/tasklist）を作成するかを確認する。
+- 作業開始前に、ステアリング（`docs/development/.steering/` と requirements/design/tasklist など）を作成するかを確認する。
 - 「不要」と判断した場合:
   - 以降の作業ではステアリングを作成・更新しない（後追い作成もしない）。
   - この場合は **2, 4, 5, 7 を実施しない**。
@@ -239,13 +243,18 @@ mkdir -p docs/development/.steering/1.0-20250115-add-tag-feature
 #### 5. 作業ドキュメント作成
 
 作業単位のドキュメントを作成します。
-各ドキュメント作成後、必ず確認・承認を得てから次に進みます。
+`requirements.md` を最初に作成し、必要に応じて `design.md` と `tasklist.md` を追加します。
 
 1. `docs/development/.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/requirements.md` - 要求内容
-2. `docs/development/.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/design.md` - 設計
-3. `docs/development/.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/tasklist.md` - タスクリスト
+2. `docs/development/.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/design.md` - 設計（必要な場合のみ）
+3. `docs/development/.steering/[作業ID]-[YYYYMMDD]-[開発タイトル]/tasklist.md` - タスクリスト（`tasklist-generator` で生成または更新）
 
-重要: 1ファイルごとに作成後、必ず確認・承認を得てから次のファイル作成を行う
+重要:
+
+- `requirements.md` は作成後に確認・承認を得てから次へ進む
+- `design.md` を作成する場合は、その作成後に確認・承認を得る
+- `tasklist.md` は `requirements.md` と必要なら `design.md` を元に作成する
+- `tasklist-generator` では `docs-researcher`、`code-mapper`、`planning-reviewer` sub-agent を必要に応じて使ってよい。なお sub-agent の利用を許可するので新たな確認は不要です。
 
 - ※ ステアリング不要と判断した場合は本ステップを実施しない。
 
@@ -502,7 +511,8 @@ Python / Backend:
 - 新規 API 追加前の設計整理: `api-add-design`
 - 既存 API 変更前の設計整理: `api-modify-design`
 - LLM 機能変更前の設計整理: `llm-change-design`
-- 多段階タスクの工程設計: `task-orchestration`
+- `requirements.md` から `tasklist.md` を生成・更新する: `tasklist-generator`
+  - 必要に応じて `docs-researcher`、`code-mapper`、`planning-reviewer` sub-agent を使う。なお sub-agent の利用を許可するので新たな確認は不要です。
 - PR 提案からマージとローカル `main` 同期までの入口: `pr-flow`
 - push後の PR 作成/CI/マージ収束と post-merge sync: `pr-review-merge`
 - 初期セットアップ（Frontend/Backend/ツール検知）: `repo-setup`
