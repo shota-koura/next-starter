@@ -46,6 +46,8 @@
 │       │   └── SKILL.md
 │       ├── document-update
 │       │   └── SKILL.md
+│       ├── implementation-plan-generator
+│       │   └── SKILL.md
 │       ├── llm-change-design
 │       │   └── SKILL.md
 │       ├── mcp-chrome-devtools-perf
@@ -217,5 +219,5 @@
 │   └── tree.sh
 └── tsconfig.json
 
-70 directories, 142 files
+71 directories, 143 files
 ```
