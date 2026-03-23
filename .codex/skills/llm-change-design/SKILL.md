@@ -23,7 +23,7 @@ description: LLM 機能変更の前に、仕様確認、ワークフロー設計
 
 ## Subagent 利用方針
 
-- sub-agent 利用が明示的に許可されている場合のみ、次を推奨する。
+- sub-agent 利用を明示的に許可します。必要に応じて以下sub-agentを利用してください。
 - 仕様確認が必要なら `docs-researcher` を使う。
 - LLM workflow 設計には `llm-architect` を使う。
 - 実装影響の経路把握には `code-mapper` を使う。

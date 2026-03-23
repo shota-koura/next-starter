@@ -74,6 +74,7 @@ AI レビュー機能を使う場合の前提:
 - CodeRabbit CLI: ローカルで `coderabbit` が使え、`coderabbit auth login` 済みであること
 - Codex: Codex を使えるプラン/権限があること
 - `codex-reviewer`: `$CODEX_HOME/agents/codex-reviewer.toml`、`CODEX_HOME` 未設定時は `~/.codex/agents/codex-reviewer.toml` に配置されていること
+- `planning-reviewer`: planning / steering / tasklist の見直しに使う場合は `.codex/agents/planning-reviewer.toml` を参照できること
 
 ## Project Structure
 
@@ -105,6 +106,11 @@ next-starter/
       protect-main.json # Ruleset のエクスポート（Import 用）
   .codex/
     skills/            # Codex skills（PR/CI運用などの手順を定型化）
+    agents/            # Codex custom agents（reviewer などの役割定義）
+  docs/
+    development/
+      .steering/       # 作業単位の requirements / tasklist / steering を置く
+      permanent/       # 恒久ドキュメント
   .coderabbit.yaml     # CodeRabbit 設定（任意機能。CLI pre-review 用）
   components.json      # shadcn/ui の設定
   package.json
@@ -116,6 +122,7 @@ next-starter/
 
 このテンプレは、Codex CLI の skills（`.codex/skills/<skill-name>/SKILL.md`）を同梱しています。
 
+- 恒久的な repo ルールの一次ソースは `AGENTS.md` とし、README は人間向けの入口と概要に絞ります。
 - `AGENTS.md` は「方針（常時適用）」を主に扱い、長い運用手順は skills に分離しています。
 - skills は Codex CLI セッション内で `$<skill-name>` と入力して呼び出す想定です（例: `$pr-flow`）。
 - 自分の運用に合わせて、`.codex/skills/**/SKILL.md` を編集してカスタマイズできます。
@@ -139,6 +146,12 @@ next-starter/
 
 - `$dedupe`
   - `rg` で既存実装を横断検索し、追記/統合の候補を提示する（util/型/スキーマの増殖を防ぐ）
+
+#### ステアリング / task planning
+
+- `$tasklist-generator`
+  - `requirements.md` を読み、必要に応じて `docs-researcher`、`code-mapper`、`planning-reviewer` を使いながら `tasklist.md` を生成・更新する
+  - `design.md` は必要な場合のみ参照し、README や `AGENTS.md` の更新が必要なら tasklist に反映する
 
 #### 検証コマンド（開発ループ / 完了前）
 
@@ -182,6 +195,7 @@ next-starter/
 ### よく使う呼び出し例
 
 - 新しい util/型/スキーマを追加する前に既存探索する: `$dedupe`
+- `requirements.md` から実行可能な `tasklist.md` を作る: `$tasklist-generator`
 - PR 提案からマージまでの入口として回す: `$pr-flow`
 - commit 前に CodeRabbit CLI の pre-review を行う: `$coderabbit-pre-review`
 - commit 前に `codex-reviewer` のローカル review を行う: `$change-review`
