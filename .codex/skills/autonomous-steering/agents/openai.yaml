@@ -1,0 +1,7 @@
+interface:
+  display_name: 'Autonomous Steering'
+  short_description: 'Autonomously advance one steering task with evidence-based branching'
+  default_prompt: 'Use $autonomous-steering to select the next ready steering task and drive it end-to-end with autonomous-orchestrator.'
+
+policy:
+  allow_implicit_invocation: false

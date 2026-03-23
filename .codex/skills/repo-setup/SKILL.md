@@ -1,13 +1,13 @@
 ---
 name: repo-setup
-description: git clone（任意）後に Frontend/Backend の初期セットアップと「Recommended first run」を実行し、必要ツール（gh, coderabbit, codex-reviewer, supabase, vercel, playwright等）を検知して不足時はOS別インストール手順を提示する
+description: git clone（任意）後に Frontend/Backend の初期セットアップと「Recommended first run」を実行し、必要ツール（gh, coderabbit, custom agents, supabase, vercel, playwright等）を検知して不足時はOS別インストール手順を提示する
 ---
 
 ## 目的
 
 - README.md の「Quick Start」「Recommended first run（初回セットアップの推奨手順）」を、ターミナルで再現可能な定型手順として固定する。
 - clone 直後に依存関係導入と静的解析/テストを一通り通し、クリーンな状態で開発を開始できるようにする。
-- PR/CI 運用に必要な `gh` と、補助 CLI（`coderabbit`, `supabase`, `vercel`, `playwright`）および custom agent（`codex-reviewer`）の存在確認を行い、未導入なら OS を判定してインストール手順を提示する。
+- PR/CI 運用に必要な `gh` と、補助 CLI（`coderabbit`, `supabase`, `vercel`, `playwright`）および custom agent（`codex-reviewer`, `planning-reviewer`, `code-mapper`, `autonomous-orchestrator` など）の存在確認を行い、未導入なら OS を判定してインストール手順を提示する。
 
 ## いつ使うか
 
@@ -29,6 +29,9 @@ description: git clone（任意）後に Frontend/Backend の初期セットア�
 - `jq` は PR/CI スキル（`pr-flow` / `pr-review-merge`）で使用（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
 - `coderabbit` は PR 前の pre-review に使う（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
 - `codex-reviewer` は `change-review` と標準 `pr-flow` に必要な custom agent（repo-setup では未導入でも実行は継続し、配置場所と不足を案内する）。
+- `planning-reviewer` は planning 系 skill で便利な custom agent。
+- `code-mapper` は `autonomous-steering` の最小 evidence lane と planning 系 skill で使う custom agent。
+- `autonomous-orchestrator` は `$autonomous-steering` の判断層として必要な custom agent。
 - `supabase` は Supabase ローカル開発や型生成で便利（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
 - `vercel` は env pull や deploy 確認で便利（repo-setup では未導入でも実行は継続し、手順だけ提示する）。
 - `playwright` は E2E の再実行や trace 確認で便利。基本は MCP を優先してよいが、CLI も利用可能にしておくと検証が安定する。
@@ -307,17 +310,34 @@ else
   esac
 fi
 
-# codex-reviewer: change-review / pr-flow で必要な custom agent。repo-setup は継続する。
+# custom agents: repo-local 同梱または global agent directory を確認する。repo-setup は継続する。
 CODEX_HOME_DIR="${CODEX_HOME:-$HOME/.codex}"
-CODEX_REVIEWER_PATH="$CODEX_HOME_DIR/agents/codex-reviewer.toml"
-if [[ -f "$CODEX_REVIEWER_PATH" ]]; then
-  echo "[OK] codex-reviewer agent found: $CODEX_REVIEWER_PATH"
-else
-  echo "[WARN] codex-reviewer agent not found. change-review / pr-flow require it."
-  echo "[HINT] install codex-reviewer.toml into:"
-  echo "  $CODEX_REVIEWER_PATH"
-  echo "[HINT] if your team manages shared agents outside this repo, copy or install codex-reviewer.toml there before using pr-flow."
-fi
+GLOBAL_AGENT_DIR="$CODEX_HOME_DIR/agents"
+LOCAL_AGENT_DIR=".codex/agents"
+
+check_agent() {
+  local agent_name="$1"
+  local purpose="$2"
+  local global_path="$GLOBAL_AGENT_DIR/${agent_name}.toml"
+  local local_path="$LOCAL_AGENT_DIR/${agent_name}.toml"
+
+  if [[ -f "$global_path" ]]; then
+    echo "[OK] ${agent_name} agent found: $global_path"
+  elif [[ -f "$local_path" ]]; then
+    echo "[OK] ${agent_name} repo-local agent found: $local_path"
+    echo "[HINT] if your Codex environment requires global agents, copy it to:"
+    echo "  $global_path"
+  else
+    echo "[WARN] ${agent_name} agent not found. ${purpose}"
+    echo "[HINT] install ${agent_name}.toml into:"
+    echo "  $global_path"
+  fi
+}
+
+check_agent "codex-reviewer" "change-review / pr-flow require it."
+check_agent "planning-reviewer" "planning skills use it for requirements / tasklist / implementation-plan review."
+check_agent "code-mapper" "autonomous-steering and planning skills use it for impact mapping."
+check_agent "autonomous-orchestrator" "autonomous-steering requires it."
 
 # supabase: 任意だが local/dev workflow で便利。repo-setup は継続する。
 if command -v supabase >/dev/null 2>&1; then

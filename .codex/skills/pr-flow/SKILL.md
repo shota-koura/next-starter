@@ -1,6 +1,6 @@
 ---
 name: pr-flow
-description: document-update、precommit、coderabbit-pre-review、change-review、commit、pr-review-merge を使い、ローカル review は並列で進めつつ、PR 提案からマージとローカル main 同期までの標準順序をまとめて案内する
+description: 作業完了時に、document-update、precommit、coderabbit-pre-review、change-review、commit、pr-review-merge を使い、PR 作成からマージとローカル main 同期までを進める。開発途中の save point には使わない
 ---
 
 # PR Flow
@@ -15,11 +15,13 @@ description: document-update、precommit、coderabbit-pre-review、change-review
 
 - PR を新規に作る、または更新して最後まで進めたいとき。
 - 毎回 `document-update -> precommit -> local reviews -> commit -> pr-review-merge` を明示するのが煩雑なとき。
+- 開発途中の軽い checkpoint ではなく、最終 review / PR / merge に進みたいとき。
 
 ## この skill の役割
 
 - この skill は薄い orchestrator であり、個別の検証や GitHub 操作の実体を持たない。
 - 実体は既存 skill に委ねる。
+- 開発途中の save point は責務外とし、その用途では `$checkpoint-save` を使う。
 - 各段階で停止条件に当たった場合は、その skill の結果を優先する。
 - ローカル review 段階では `coderabbit-pre-review` と `change-review` を並列で扱う。
 - `change-review` は `codex-reviewer` sub-agent を必須とするため、この標準順序は `codex-reviewer` を使えるセッションを前提にする。
@@ -67,6 +69,8 @@ $change-review
 ### 4) 結果を統合して停止判定
 
 - 親エージェントは CodeRabbit と `codex-reviewer` の結果を同じ形式へ正規化し、stable ID で統合して提示する。
+- sub-agent 通知や CLI 生出力が先に表示されていても、親エージェントの findings 提示は最終整理を 1 回だけ返す。
+- すでに見えている raw finding を、そのまま重複して再掲しない。必要なら「片側結果」または「最終確定結果」として差分だけを要約する。
 - `coderabbit-pre-review` と `change-review` の両方が完了したら findings を最終確定して提示する。
 - 片方の lane だけが完了している場合は、取得済みの finding を「片側結果」として提示してよい。
 - 片側結果は action 可能な暫定結果として扱ってよいが、commit 判定は保留する。

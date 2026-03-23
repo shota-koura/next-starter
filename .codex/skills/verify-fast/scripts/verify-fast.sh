@@ -12,10 +12,16 @@ RUN_PYTEST="${RUN_PYTEST:-0}"
 git status -sb
 git diff --name-only
 
-CHANGED="$(git diff --name-only || true)"
+CHANGED="$(
+  {
+    git diff --name-only
+    git diff --name-only --cached
+    git ls-files --others --exclude-standard
+  } | sed '/^$/d' | sort -u
+)"
 
 if [[ "$RUN_FRONTEND" == "auto" ]]; then
-  if echo "$CHANGED" | grep -Eq '^(app/|components/|lib/|__tests__/|e2e/)'; then
+  if echo "$CHANGED" | grep -Eq '^(app/|components/|lib/|hooks/|contexts/|types/|styles/|public/|__tests__/|e2e/)'; then
     RUN_FRONTEND="1"
   else
     RUN_FRONTEND="0"
@@ -23,7 +29,7 @@ if [[ "$RUN_FRONTEND" == "auto" ]]; then
 fi
 
 if [[ "$RUN_BACKEND" == "auto" ]]; then
-  if echo "$CHANGED" | grep -Eq '^(backend/|pyproject\.toml$|requirements.*\.txt$)'; then
+  if echo "$CHANGED" | grep -Eq '^(backend/|pyproject\.toml$|requirements.*\.txt$|backend/requirements.*\.txt$)'; then
     RUN_BACKEND="1"
   else
     RUN_BACKEND="0"

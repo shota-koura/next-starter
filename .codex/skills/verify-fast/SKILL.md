@@ -7,6 +7,7 @@ description: 開発ループ中の速い検証を、変更範囲に応じて実�
 
 - 開発ループ中に素早く「明らかな失敗」を潰す。
 - 完了前は別skill `$verify-full` を使う。
+- 変更範囲の自動判定には unstaged / staged / untracked の差分をまとめて使う。
 
 ## いつ使うか
 
@@ -33,10 +34,10 @@ pwsh -File .codex/skills/verify-fast/scripts/verify-fast.ps1
 
 - `RUN_FRONTEND`
   - `auto` / `1` / `0`（デフォルト `auto`）
-  - `auto` の場合、`app/`・`components/`・`lib/`・`__tests__/`・`e2e/` の変更があれば Frontend を実行
+  - `auto` の場合、`app/`・`components/`・`lib/`・`hooks/`・`contexts/`・`types/`・`styles/`・`public/`・`__tests__/`・`e2e/` の変更があれば Frontend を実行
 - `RUN_BACKEND`
   - `auto` / `1` / `0`（デフォルト `auto`）
-  - `auto` の場合、`backend/`・`pyproject.toml`・`requirements*.txt` の変更があれば Backend を実行
+  - `auto` の場合、`backend/`・`pyproject.toml`・`requirements*.txt`・`backend/requirements*.txt` の変更があれば Backend を実行
 - `RUN_TEST`
   - `1` の場合のみ `npm run test:ci` を実行（デフォルト `0`）
 - `RUN_PYTEST`
@@ -52,7 +53,7 @@ git diff --name-only
 
 ```
 
-### 1) Frontend を触った場合（例: `app/`, `components/`, `lib/`, `__tests__/`, `e2e/` など）
+### 1) Frontend を触った場合（例: `app/`, `components/`, `lib/`, `hooks/`, `contexts/`, `types/`, `styles/`, `public/`, `__tests__/`, `e2e/` など）
 
 ```bash
 npm run format:check

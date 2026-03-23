@@ -8,6 +8,7 @@
 ├── .codex
 │   ├── agents
 │   │   ├── api-designer.toml
+│   │   ├── autonomous-orchestrator.toml
 │   │   ├── backend-developer.toml
 │   │   ├── cloud-architect.toml
 │   │   ├── code-mapper.toml
@@ -26,12 +27,25 @@
 │       │   └── SKILL.md
 │       ├── api-modify-design
 │       │   └── SKILL.md
+│       ├── autonomous-steering
+│       │   ├── SKILL.md
+│       │   ├── agents
+│       │   │   └── openai.yaml
+│       │   └── references
+│       │       └── autonomy-policy.md
 │       ├── branch-create
 │       │   └── SKILL.md
 │       ├── bug-investigation
 │       │   └── SKILL.md
 │       ├── change-review
 │       │   └── SKILL.md
+│       ├── checkpoint-save
+│       │   ├── SKILL.md
+│       │   ├── agents
+│       │   │   └── openai.yaml
+│       │   └── scripts
+│       │       ├── checkpoint-save.ps1
+│       │       └── checkpoint-save.sh
 │       ├── coderabbit-pre-review
 │       │   ├── SKILL.md
 │       │   └── scripts
@@ -70,6 +84,8 @@
 │       │   └── scripts
 │       │       ├── repo-setup.ps1
 │       │       └── repo-setup.sh
+│       ├── requirements-quality-gate
+│       │   └── SKILL.md
 │       ├── setup-tailwind-frontend
 │       │   └── SKILL.md
 │       ├── skills-retro
@@ -118,6 +134,10 @@
 │   └── pre-commit
 ├── .prettierignore
 ├── .prettierrc
+├── .serena
+│   ├── cache
+│   │   └── typescript
+│   └── memories
 ├── .specstory
 │   ├── .project.json
 │   └── history
@@ -219,5 +239,5 @@
 │   └── tree.sh
 └── tsconfig.json
 
-71 directories, 143 files
+82 directories, 152 files
 ```

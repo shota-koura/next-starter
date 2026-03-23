@@ -256,6 +256,12 @@ mkdir -p docs/development/.steering/1.0-20250115-add-tag-feature
 - `tasklist.md` は `requirements.md` と必要なら `implementation-plan.md` を元に作成する
 - `tasklist-generator` では `docs-researcher`、`code-mapper`、`planning-reviewer` sub-agent を必要に応じて使ってよい。なお sub-agent の利用を許可するので新たな確認は不要です。
 
+例外（opt-in 自律実行）:
+
+- ユーザーが明示的に `$autonomous-steering` を起動した作業では、上記の段階承認待ちを routine には挟まなくてよい。
+- その場合は `.codex/agents/autonomous-orchestrator.toml` を判断層として使い、既存 skill の結果を解釈して次工程を決める。
+- ただし guarded 領域、重大な requirements 曖昧さ、evidence 衝突に当たった場合は必ず停止する。
+
 - ※ ステアリング不要と判断した場合は本ステップを実施しない。
 
 #### 6. 永続的ドキュメント更新（必要な場合のみ）
@@ -354,6 +360,16 @@ graph TD
 - 図表とコードの乖離を防ぐ
 
 ## 基本方針（常時適用・最重要）
+
+### opt-in 自律実行の扱い
+
+- `$autonomous-steering` は、ユーザーが明示的に opt-in した場合だけ使ってよい。
+- この skill では通常の「人に止める」運用を一部置き換えてよいが、以下は置き換えない:
+  - guarded 領域の停止
+  - 重大な requirements / contract / auth / migration / rollout 不確実性での停止
+  - 複数 evidence lane の結論が衝突した場合の停止
+- 自律判断は `AUTO_FIX` / `AUTO_DEFER` / `STOP` の 3 値で扱い、根拠を steering ディレクトリの run log に残す。
+- evidence 収集は並列でよいが、write owner は常に 1 つだけにする。
 
 ### 秘密情報・安全
 
@@ -456,6 +472,9 @@ Python / Backend:
 
 ## 標準コマンド（共通）
 
+- 開発途中の save point（任意）:
+  - `$checkpoint-save`（`$verify-fast` を通したうえで checkpoint commit/push を行う。作業完了時は使わず `$pr-flow` に進む）
+
 - commit 前の標準フロー（必須）:
   - `$precommit`
   - `export COMMIT_MSG='type(scope): 日本語要約'`
@@ -466,7 +485,9 @@ Python / Backend:
   - `pr-flow` の内部で、必要に応じて `$document-update` → `$precommit` → `($coderabbit-pre-review と $change-review を並列実行)` → `$commit` → `$pr-review-merge` を使う
   - local review に finding が出た場合は stable ID 付きで停止し、ユーザーが選んだ ID だけを修正する
   - 上記は `codex-reviewer` sub-agent を使えるセッションを前提とする、なお sub-agent の利用を許可するので新たな確認は不要です。
-  - `codex-reviewer` は `$CODEX_HOME/agents/codex-reviewer.toml`、`CODEX_HOME` 未設定時は `~/.codex/agents/codex-reviewer.toml` に配置されていること
+  - このテンプレは `.codex/agents/` に custom agent 定義を同梱する
+  - repo-local agent をそのまま読める環境では `.codex/agents/codex-reviewer.toml` を使ってよい
+  - 利用中の Codex 環境が global agent directory を要求する場合は、`codex-reviewer.toml` を `$CODEX_HOME/agents/`、`CODEX_HOME` 未設定時は `~/.codex/agents/` に配置する
   - `pr-review-merge` は merge 後、既定でローカルを `main` に戻して `origin/main` へ同期する
 
 - PR 作成〜CI待ち（入口）: `bash scripts/pr.sh`（無い場合は `gh` でフォールバック）
@@ -502,6 +523,7 @@ Python / Backend:
 このリポジトリでは、長い手順・状況依存の手順は skills に分離する。
 
 - PR前のドキュメント整合: `document-update`
+- 開発途中の checkpoint commit/push: `checkpoint-save`
 - プレコミット（整形/セルフレビュー/tree 更新）: `precommit`
 - コミット（verify-full 実行後に add/commit/push）: `commit`
 - 重複検知/統合（既存探索の標準手順）: `dedupe`
@@ -511,10 +533,13 @@ Python / Backend:
 - 新規 API 追加前の設計整理: `api-add-design`
 - 既存 API 変更前の設計整理: `api-modify-design`
 - LLM 機能変更前の設計整理: `llm-change-design`
+- `requirements.md` の品質ゲートレビューを行う: `requirements-quality-gate`
 - `requirements.md` から `implementation-plan.md` を生成・更新する: `implementation-plan-generator`
 - `requirements.md` から `tasklist.md` を生成・更新する: `tasklist-generator`
   - 必要に応じて `docs-researcher`、`code-mapper`、`planning-reviewer` sub-agent を使う。なお sub-agent の利用を許可するので新たな確認は不要です。
-- PR 提案からマージとローカル `main` 同期までの入口: `pr-flow`
+- steering 入口からの opt-in 自律実行: `autonomous-steering`
+  - `.codex/agents/autonomous-orchestrator.toml` を判断層として使い、既存 skill 群を end-to-end で束ねる
+- PR 提案からマージとローカル `main` 同期までの入口（作業完了時のみ）: `pr-flow`
 - push後の PR 作成/CI/マージ収束と post-merge sync: `pr-review-merge`
 - 初期セットアップ（Frontend/Backend/ツール検知）: `repo-setup`
 - Tailwind CSS v4 の導入: `setup-tailwind-frontend`
@@ -553,6 +578,7 @@ Python / Backend:
 ## 注意事項
 
 - ドキュメントの作成・更新は段階的に行い、各段階で承認を得る。
+  - ただし、ユーザーが `$autonomous-steering` を明示起動した作業は、この承認待ちを opt-in で省略してよい。
 - `docs/development/.steering/` のディレクトリ名は、`[作業ID]-[YYYYMMDD]-[開発タイトル]` で明確に識別できるようにする。
 - `docs/development/.steering/steering.md` は作業の俯瞰（着手順/状態/依存関係）を一次ソースとして扱う。
 - 永続的ドキュメントと作業単位のドキュメントを混同しない。

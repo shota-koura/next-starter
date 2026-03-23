@@ -73,8 +73,11 @@ AI レビュー機能を使う場合の前提:
 
 - CodeRabbit CLI: ローカルで `coderabbit` が使え、`coderabbit auth login` 済みであること
 - Codex: Codex を使えるプラン/権限があること
-- `codex-reviewer`: `$CODEX_HOME/agents/codex-reviewer.toml`、`CODEX_HOME` 未設定時は `~/.codex/agents/codex-reviewer.toml` に配置されていること
-- `planning-reviewer`: planning / steering / tasklist の見直しに使う場合は `.codex/agents/planning-reviewer.toml` を参照できること
+- このテンプレは `.codex/agents/` に custom agent 定義を同梱する
+- `codex-reviewer`: `change-review` / `pr-flow` で使用
+- `planning-reviewer`: planning / steering / tasklist の見直しで使用
+- `autonomous-orchestrator`: `$autonomous-steering` の判断層として使用
+- 利用中の Codex 環境が repo-local agents を読めない場合は、必要な `.toml` を `$CODEX_HOME/agents/` または `~/.codex/agents/` に配置する
 
 ## Project Structure
 
@@ -131,8 +134,11 @@ next-starter/
 
 #### PR / CI / レビュー運用
 
+- `$checkpoint-save`
+  - 開発途中の論理的な区切りで `verify-fast` を実行し、checkpoint commit/push を作る
+  - CodeRabbit / `codex-reviewer` / PR 作成 / merge は行わず、作業完了時は `$pr-flow` に進む
 - `$pr-flow`
-  - `document-update`、`precommit`、`coderabbit-pre-review`、`change-review`、`commit`、`pr-review-merge` を使い、ローカル review は並列で進めながら PR 提案からマージまでの入口をまとめる
+  - 作業完了時に `document-update`、`precommit`、`coderabbit-pre-review`、`change-review`、`commit`、`pr-review-merge` を使い、PR 提案からマージまでの入口をまとめる
   - `change-review` が `codex-reviewer` sub-agent 必須のため、`codex-reviewer` を使えるセッションを前提にする
   - local review に finding が出た場合は stable ID 付きで停止し、選ばれた ID だけを修正する
 - `$coderabbit-pre-review`
@@ -149,11 +155,20 @@ next-starter/
 
 #### ステアリング / task planning
 
+- `$requirements-quality-gate`
+  - `requirements.md` を品質ゲートとしてレビューし、`RR-*` / `RQ-*` 形式で修正点と確認事項を返す
+  - unresolved な項目が残る限り downstream に進めず、必要なら指定 ID だけを requirements に反映する
 - `$implementation-plan-generator`
   - `requirements.md` を読み、必要に応じて `docs-researcher`、`code-mapper`、`planning-reviewer` を使いながら `implementation-plan.md` を生成・更新する
 - `$tasklist-generator`
   - `requirements.md` と必要なら `implementation-plan.md` を読み、必要に応じて `docs-researcher`、`code-mapper`、`planning-reviewer` を使いながら `tasklist.md` を生成・更新する
   - README や `AGENTS.md` の更新が必要なら tasklist に反映する
+
+#### 自律実行
+
+- `$autonomous-steering`
+  - `steering.md` と対象 `requirements.md` を入口に、`autonomous-orchestrator` が evidence lane を並列収集し、`AUTO_FIX` / `AUTO_DEFER` / `STOP` を裁定しながら end-to-end で進める
+  - 通常の段階承認待ちは省略するが、guarded 領域や evidence 衝突では停止する
 
 #### 検証コマンド（開発ループ / 完了前）
 
@@ -196,9 +211,12 @@ next-starter/
 
 ### よく使う呼び出し例
 
+- 開発途中の save point を作る: `$checkpoint-save`
 - 新しい util/型/スキーマを追加する前に既存探索する: `$dedupe`
+- `requirements.md` を downstream 前に品質ゲートレビューする: `$requirements-quality-gate`
 - `requirements.md` から `implementation-plan.md` を作る: `$implementation-plan-generator`
 - `requirements.md` から実行可能な `tasklist.md` を作る: `$tasklist-generator`
+- ready な steering task を自律実行で進める: `$autonomous-steering`
 - PR 提案からマージまでの入口として回す: `$pr-flow`
 - commit 前に CodeRabbit CLI の pre-review を行う: `$coderabbit-pre-review`
 - commit 前に `codex-reviewer` のローカル review を行う: `$change-review`
@@ -484,22 +502,28 @@ coderabbit auth status
 - CLI docs: [https://docs.coderabbit.ai/cli](https://docs.coderabbit.ai/cli)
 - Codex integration: [https://docs.coderabbit.ai/cli/codex-integration](https://docs.coderabbit.ai/cli/codex-integration)
 
-### 3) codex-reviewer を配置する
+### 3) custom agent を利用可能にする
 
-- `change-review` と標準 `pr-flow` は `codex-reviewer` custom agent を前提にします。
-- 配置先:
+- このテンプレは `.codex/agents/` に custom agent 定義を同梱しています。
+  - `codex-reviewer.toml`
+  - `planning-reviewer.toml`
+  - `autonomous-orchestrator.toml`
+  - その他の設計 / 実装補助 agent
+- repo-local agents をそのまま読める環境では追加配置は不要です。
+- 利用中の Codex 環境が global agent directory を要求する場合は、必要な `.toml` を次へ配置してください。
 
 ```bash
-$CODEX_HOME/agents/codex-reviewer.toml
+$CODEX_HOME/agents/
 ```
 
 - `CODEX_HOME` を使っていない場合の既定:
 
 ```bash
-~/.codex/agents/codex-reviewer.toml
+~/.codex/agents/
 ```
 
-- このテンプレ自体は agent 定義を同梱していないため、チームの agent 管理元から `codex-reviewer.toml` を配置してください。
+- `change-review` と標準 `pr-flow` は `codex-reviewer` を前提にします。
+- `$autonomous-steering` は `autonomous-orchestrator` を前提にします。
 - 導入確認は `$repo-setup` でも行えます。
 
 ### 4) ローカル pre-review を試す（最短の確認手順）
