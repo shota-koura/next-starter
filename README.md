@@ -134,7 +134,7 @@ next-starter/
 - `$pr-flow`
   - `document-update`、`precommit`、`coderabbit-pre-review`、`change-review`、`commit`、`pr-review-merge` を使い、ローカル review は並列で進めながら PR 提案からマージまでの入口をまとめる
   - `change-review` が `codex-reviewer` sub-agent 必須のため、`codex-reviewer` を使えるセッションを前提にする
-  - local review に finding が出た場合は番号付きで停止し、選ばれた番号だけを修正する
+  - local review に finding が出た場合は stable ID 付きで停止し、選ばれた ID だけを修正する
 - `$coderabbit-pre-review`
   - CodeRabbit CLI で `precommit` 後・`commit` 前のローカル差分を事前レビューし、P0/P1/P2 相当で整理する
 - `$change-review`
@@ -441,7 +441,7 @@ GitHub のテンプレ機能は「リポジトリ内のファイル」はコピ�
   - 既定では `change-review` で `codex-reviewer` sub-agent を使ってローカル差分を review する
   - 親エージェントが `codex-reviewer` の結果を回収し、CodeRabbit と同じ形式に揃えて提示する
   - `coderabbit-pre-review` と `change-review` は並列で走らせる想定
-  - local review に finding が出た場合は番号付きで提示し、選ばれた番号だけを修正する
+  - local review に finding が出た場合は stable ID 付きで提示し、選ばれた ID だけを修正する
   - そのため、標準の `pr-flow` は `codex-reviewer` を使えるセッションを前提にする
   - GitHub 上の `@codex review` は manual fallback としてのみ使う
 
@@ -507,8 +507,8 @@ $CODEX_HOME/agents/codex-reviewer.toml
 1. ブランチを切って変更を入れる
 2. `precommit` を通す
 3. `coderabbit-pre-review` と `change-review` を並列で実行する
-4. findings があれば番号付き一覧を確認し、対応する番号を選ぶ
-5. 選んだ番号だけを修正する
+4. findings があれば stable ID 一覧を確認し、対応する ID を選ぶ
+5. 選んだ ID だけを修正する
 6. commit 後に `pr-flow` で PR へ進む
 
 ### 5) CI 失敗を Codex に直させる（手動トリガー）

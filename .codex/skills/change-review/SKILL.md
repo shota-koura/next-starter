@@ -8,7 +8,9 @@ description: ローカル差分に対して、codex-reviewer sub-agent を使っ
 - PR 前や push 前に、ローカル差分のリスクを先に洗う。
 - style 指摘ではなく、ユーザー影響や運用影響のある問題を優先する。
 - `codex-reviewer` sub-agent を必ず使い、親エージェントはその結果を回収して統一フォーマットで提示する。
-- finding がある場合は修正へ進まず、番号付き一覧を提示してユーザーが対応番号を選ぶまで停止する。
+- finding がある場合は修正へ進まず、ID 付き一覧を提示してユーザーが対応 ID を選ぶまで停止する。
+- `codex-reviewer` の応答が遅くても完了を待ち、タイムアウトや遅延を理由に親判断でレビュー対象を狭めない。
+- 応答が遅い場合は待機を継続しつつ、待機中であることを明示して報告する。
 
 ## いつ使うか
 
@@ -30,10 +32,17 @@ description: ローカル差分に対して、codex-reviewer sub-agent を使っ
 1. `git status -sb` と `git diff --stat` でレビュー対象を把握する
 2. 変更の主経路を短く要約する
 3. `codex-reviewer` sub-agent を起動し、上記 4 観点でレビューさせる
-4. 親エージェントが `codex-reviewer` の結果を回収し、重複や表現揺れを整理する
-5. finding を統一フォーマットへ正規化して提示する
-6. finding が 1 件でもあれば修正へ進まず、ユーザーに「対応する番号」を確認して停止する
-7. 指示された番号だけを修正し、必要なら再度この skill を実行する
+4. `codex-reviewer` の応答が遅くても完了まで待機し、タイムアウトや遅延を理由にレビュー対象を狭めない
+5. 親エージェントが `codex-reviewer` の結果を回収し、重複や表現揺れを整理する
+6. `codex-reviewer` が未完了、失敗、または結果回収不能な場合は findings を提示せず停止する
+7. finding を統一フォーマットへ正規化して提示する
+8. finding が 1 件でもあれば修正へ進まず、ユーザーに「対応する ID」を確認して停止する
+9. 指示された ID だけを修正し、必要なら再度この skill を実行する
+
+補足:
+
+- 待機が長引く場合も、親判断で review のスコープや観点を削らない。
+- 待機中は「`codex-reviewer` の完了待ちであり、まだ commit 判定に進めない」ことを明示する。
 
 ## `coderabbit-pre-review` との違い
 
@@ -45,7 +54,13 @@ description: ローカル差分に対して、codex-reviewer sub-agent を使っ
 
 - この skill は `codex-reviewer` sub-agent の実行を前提にする。
 - `codex-reviewer` が利用できない環境では停止し、「この運用では codex-reviewer が必要」と明示する。
-- 親エージェントは `codex-reviewer` の結果を回収して要約・正規化するが、ユーザー指示前に修正実装へ進まない。
+- `codex-reviewer` が未完了、失敗、または結果回収不能な場合は findings を提示せず停止する。
+- 親エージェントは `codex-reviewer` の結果を回収して要約・正規化するが、ユーザーの ID 指定前に一切修正しない。
+- 待機が長引く場合も、自動で打ち切らず、継続待機または停止の判断はユーザーに委ねる。
+- `pr-flow` 配下では、この skill の finding には `CX-*` の stable ID を付ける。
+- `pr-flow` 配下では、もう片方の review lane が未完了、失敗、または結果回収不能な場合でも、この lane 自身が返した確定済み finding を親エージェントが「片側結果」として提示してよい。
+- その場合でも commit 判定は保留し、ユーザーが選んだ stable ID だけを先に修正してよい。
+- 片側結果に基づく修正が入った場合は、修正前差分を見た未完了 lane の結果を stale とみなし、親エージェントは両 lane の review を修正後差分で再実行する。
 
 ## 出力
 
@@ -57,7 +72,7 @@ description: ローカル差分に対して、codex-reviewer sub-agent を使っ
 提示形式は `coderabbit-pre-review` と揃えて、次を使う。
 
 ```text
-- No.:
+- ID: CX-1
 - ソース: codex-reviewer
 - 懸念レベル: P0|P1|P2
 - レビュータイトル:
@@ -70,8 +85,8 @@ description: ローカル差分に対して、codex-reviewer sub-agent を使っ
 finding がある場合の締め方は次を基準にする。
 
 ```text
-- 対応する番号を指定してください。
-- 指定された番号だけを修正します。
+- 対応する ID を指定してください。
+- 指定された ID だけを修正します。
 ```
 
 finding が無い場合の出力は次を基準にする。
@@ -88,5 +103,7 @@ Codex reviewer の結果を整理しました。
 ## 完了条件
 
 - `codex-reviewer` sub-agent の結果を親エージェントが回収できている。
+- `codex-reviewer` が未完了のまま findings 提示や修正着手に進んでいない。
 - finding がある場合、影響と根拠が説明できる。
 - finding が無い場合も、残るリスクと未確認点を短く述べられる。
+- `pr-flow` 配下で片側結果として提示された finding も、最終統合時に同じ stable ID を維持できる。
