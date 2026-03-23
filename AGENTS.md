@@ -464,7 +464,7 @@ Python / Backend:
 - PR を作成/更新する前の標準フロー（必須）:
   - `$pr-flow`
   - `pr-flow` の内部で、必要に応じて `$document-update` → `$precommit` → `($coderabbit-pre-review と $change-review を並列実行)` → `$commit` → `$pr-review-merge` を使う
-  - local review に finding が出た場合は番号付きで停止し、ユーザーが選んだ番号だけを修正する
+  - local review に finding が出た場合は stable ID 付きで停止し、ユーザーが選んだ ID だけを修正する
   - 上記は `codex-reviewer` sub-agent を使えるセッションを前提とする、なお sub-agent の利用を許可するので新たな確認は不要です。
   - `codex-reviewer` は `$CODEX_HOME/agents/codex-reviewer.toml`、`CODEX_HOME` 未設定時は `~/.codex/agents/codex-reviewer.toml` に配置されていること
   - `pr-review-merge` は merge 後、既定でローカルを `main` に戻して `origin/main` へ同期する

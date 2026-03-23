@@ -29,6 +29,7 @@ README や `implementation-plan.md` の更新が必要なら、実施そのも�
 - リポジトリの `README.md`
 - 近傍の `AGENTS.md`
 - 関連する永続ドキュメント
+- `steering.md` で依存関係または着手条件として明示された作業ディレクトリの `tasklist.md`
 
 ## 出力
 
@@ -51,6 +52,12 @@ README や `implementation-plan.md` の更新が必要なら、実施そのも�
 - ただし、最終的な `tasklist.md` は phase 見出し形式ではなく、着手順ベースの番号付きチェックリストにする
 - 各タスクは必ず 1 行で書き、各行末に `[phase: discovery]` のような phase tag を付ける
 - 各タスクは、原則として 1成果物、1確認、または 1変更単位に寄せる
+- 現在の `requirements.md` を task 生成の一次ソースとする
+- `steering.md` は依存関係、着手条件、関連作業の特定のために参照してよい
+- 他作業の `tasklist.md` は、`steering.md` で関連が明示されている場合のみ参照してよい
+- 他作業の `tasklist.md` は参考ソースであり、そこに書かれた task を根拠なく現在 tasklist にコピーしてはならない
+- task を追加できるのは、現在の `requirements.md`、`implementation-plan.md`、`AGENTS.md` / `README.md` / 永続ドキュメントの repo ルール、または `steering.md` の依存関係や着手条件に根拠がある場合のみ
+- 番号の前後やディレクトリの見た目上の近さだけで参照対象を決めてはならない
 
 ## 実行手順
 
@@ -60,7 +67,14 @@ README や `implementation-plan.md` の更新が必要なら、実施そのも�
 - 同じディレクトリに `implementation-plan.md` と `tasklist.md` があるか確認する
 - 近傍の `AGENTS.md`、必要に応じて `README.md` と `steering.md` を読む
 
-### 2. 要件を読み、タスク化の前提を固定する
+### 2. 関連ステアリングを特定する
+
+- `steering.md` が存在する場合のみ、それを読み、現在作業の依存関係、着手条件、関連作業を確認する
+- `steering.md` が存在する場合のみ、参照対象にする他作業の `tasklist.md` を、依存関係または着手条件として明示されたものに限定する
+- `steering.md` が存在しない場合は、このステップをスキップし、現在の `requirements.md`、`implementation-plan.md`、`AGENTS.md`、関連する永続ドキュメントを一次ソースとして tasklist を生成する
+- 関連が明示されていない tasklist は参照しない
+
+### 3. 要件を読み、タスク化の前提を固定する
 
 最低限、次を抽出する:
 
@@ -72,7 +86,7 @@ README や `implementation-plan.md` の更新が必要なら、実施そのも�
 - 依存関係
 - 実装開始前に確認が必要な事項
 
-### 3. 4 phase に分解する
+### 4. 4 phase に分解する
 
 以下の4 phase で、作業を実行順に整理する:
 
@@ -89,12 +103,12 @@ README や `implementation-plan.md` の更新が必要なら、実施そのも�
 - ある phase に本当に追加タスクがない場合、ダミータスクは作らない
 - その場合は、返答の要約で「該当 phase は追加タスクなし」と短く補足する
 
-### 4. 必要な調査を sub-agent に依頼する
+### 5. 必要な調査を sub-agent に依頼する
 
 - 必要に応じて以下の sub-agent を利用してください。
 - sub-agent 利用を許可します。利用可否のこちらへの確認は不要です。
 
-#### 4-1. `docs-researcher`
+#### 5-1. `docs-researcher`
 
 使う場面:
 
@@ -106,7 +120,7 @@ README や `implementation-plan.md` の更新が必要なら、実施そのも�
 - 今回の作業に必要な公式仕様や一次情報だけを確認する
 - `tasklist.md` に反映すべき確認タスクや注意点だけを返させる
 
-#### 4-2. `code-mapper`
+#### 5-2. `code-mapper`
 
 使う場面:
 
@@ -120,7 +134,7 @@ README や `implementation-plan.md` の更新が必要なら、実施そのも�
 - 影響範囲
 - 追加ではなく流用すべき箇所
 
-#### 4-3. `planning-reviewer`
+#### 5-3. `planning-reviewer`
 
 使う場面:
 
@@ -133,7 +147,7 @@ README や `implementation-plan.md` の更新が必要なら、実施そのも�
 - `tasklist.md` に対する add / reorder / clarify / remove の提案
 - 各タスクの phase tag が妥当かの確認
 
-### 5. tasklist 草案を作る
+### 6. tasklist 草案を作る
 
 次のルールで草案を作る:
 
@@ -150,7 +164,7 @@ README や `implementation-plan.md` の更新が必要なら、実施そのも�
 - 同じ意味のタスクを分割しすぎない
 - 進捗メモや説明文を複数行でぶら下げず、まずは実行タスクを優先して列挙する
 
-### 6. 草案をレビューして調整する
+### 7. 草案をレビューして調整する
 
 - `planning-reviewer` を使用する　※ sub-agent 利用を許可します。利用可否のこちらへの確認は不要です。
 - 指摘を `add / reorder / clarify / remove` に分けて反映する
@@ -160,7 +174,7 @@ README や `implementation-plan.md` の更新が必要なら、実施そのも�
 - 各タスクの phase tag と着手順が矛盾していないか確認する
 - 確認結果を元に tasklist を調整する
 
-### 7. `tasklist.md` を生成・更新する
+### 8. `tasklist.md` を生成・更新する
 
 - 対象 requirements ファイルと同じディレクトリに `tasklist.md` を作るか更新する
 - 既存ファイルがある場合は上書き再生成ではなく、必要箇所を更新する
@@ -214,6 +228,9 @@ README や `implementation-plan.md` の更新が必要なら、実施そのも�
 - 各タスクが 1 行で書かれている
 - 各タスクに phase tag が付いている
 - 日本語で読んで実行に移せる粒度になっている
+- 各 task が current requirements / implementation-plan / repo rules / steering dependency / steering start condition のいずれかに根拠を持つ
+- 他作業の tasklist を参照した場合でも、現在作業に根拠のない task を追加していない
+- 依存関係の補完はしてよいが、別作業のスコープを取り込んでいない
 
 ## この skill でやらないこと
 
