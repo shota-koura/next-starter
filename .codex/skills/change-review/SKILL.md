@@ -34,10 +34,11 @@ description: ローカル差分に対して、codex-reviewer sub-agent を使っ
 3. `codex-reviewer` sub-agent を起動し、上記 4 観点でレビューさせる
 4. `codex-reviewer` の応答が遅くても完了まで待機し、タイムアウトや遅延を理由にレビュー対象を狭めない
 5. 親エージェントが `codex-reviewer` の結果を回収し、重複や表現揺れを整理する
-6. `codex-reviewer` が未完了、失敗、または結果回収不能な場合は findings を提示せず停止する
-7. finding を統一フォーマットへ正規化して提示する
-8. finding が 1 件でもあれば修正へ進まず、ユーザーに「対応する ID」を確認して停止する
-9. 指示された ID だけを修正し、必要なら再度この skill を実行する
+6. sub-agent 通知が先に表示されている場合でも、親エージェントは同じ finding を verbatim で二重再掲せず、最終整理だけを 1 回返す
+7. `codex-reviewer` が未完了、失敗、または結果回収不能な場合は findings を提示せず停止する
+8. finding を統一フォーマットへ正規化して提示する
+9. finding が 1 件でもあれば修正へ進まず、ユーザーに「対応する ID」を確認して停止する
+10. 指示された ID だけを修正し、必要なら再度この skill を実行する
 
 補足:
 

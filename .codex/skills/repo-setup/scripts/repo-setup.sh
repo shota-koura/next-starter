@@ -207,17 +207,6 @@ else
   esac
 fi
 
-CODEX_HOME_DIR="${CODEX_HOME:-$HOME/.codex}"
-CODEX_REVIEWER_PATH="$CODEX_HOME_DIR/agents/codex-reviewer.toml"
-if [[ -f "$CODEX_REVIEWER_PATH" ]]; then
-  echo "[OK] codex-reviewer agent found: $CODEX_REVIEWER_PATH"
-else
-  echo "[WARN] codex-reviewer agent not found. change-review / pr-flow require it."
-  echo "[HINT] install codex-reviewer.toml into:"
-  echo "  $CODEX_REVIEWER_PATH"
-  echo "[HINT] if your team manages shared agents outside this repo, copy or install codex-reviewer.toml there before using pr-flow."
-fi
-
 # supabase: 任意だが local/dev workflow で便利。repo-setup は継続する。
 if command -v supabase >/dev/null 2>&1; then
   echo "[OK] supabase found: $(supabase --version | head -n 1)"
@@ -287,6 +276,34 @@ fi
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
 echo "[INFO] repo root: $(pwd)"
+
+CODEX_HOME_DIR="${CODEX_HOME:-$HOME/.codex}"
+GLOBAL_AGENT_DIR="$CODEX_HOME_DIR/agents"
+LOCAL_AGENT_DIR="$ROOT/.codex/agents"
+
+check_agent() {
+  local agent_name="$1"
+  local purpose="$2"
+  local global_path="$GLOBAL_AGENT_DIR/${agent_name}.toml"
+  local local_path="$LOCAL_AGENT_DIR/${agent_name}.toml"
+
+  if [[ -f "$global_path" ]]; then
+    echo "[OK] ${agent_name} agent found: $global_path"
+  elif [[ -f "$local_path" ]]; then
+    echo "[OK] ${agent_name} repo-local agent found: $local_path"
+    echo "[HINT] if your Codex environment requires global agents, copy it to:"
+    echo "  $global_path"
+  else
+    echo "[WARN] ${agent_name} agent not found. ${purpose}"
+    echo "[HINT] install ${agent_name}.toml into:"
+    echo "  $global_path"
+  fi
+}
+
+check_agent "codex-reviewer" "change-review / pr-flow require it."
+check_agent "planning-reviewer" "planning skills use it for requirements / tasklist / implementation-plan review."
+check_agent "code-mapper" "autonomous-steering and planning skills use it for impact mapping."
+check_agent "autonomous-orchestrator" "autonomous-steering requires it."
 
 if [[ "$SKIP_FRONTEND" != "1" ]]; then
   echo "[STEP] Frontend: npm install"

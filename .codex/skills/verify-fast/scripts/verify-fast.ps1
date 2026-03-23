@@ -11,10 +11,14 @@ $runPytest = if ($env:RUN_PYTEST) { $env:RUN_PYTEST } else { "0" }
 & git status -sb
 & git diff --name-only
 
-$changed = & git diff --name-only
+$changed = @()
+$changed += (& git diff --name-only)
+$changed += (& git diff --name-only --cached)
+$changed += (& git ls-files --others --exclude-standard)
+$changed = $changed | Where-Object { $_ -and $_.Trim() -ne "" } | Sort-Object -Unique
 
 if ($runFrontend -eq "auto") {
-  if ($changed -match '^(app/|components/|lib/|__tests__/|e2e/)') {
+  if ($changed -match '^(app/|components/|lib/|hooks/|contexts/|types/|styles/|public/|__tests__/|e2e/)') {
     $runFrontend = "1"
   } else {
     $runFrontend = "0"
@@ -22,7 +26,7 @@ if ($runFrontend -eq "auto") {
 }
 
 if ($runBackend -eq "auto") {
-  if ($changed -match '^(backend/|pyproject\.toml$|requirements.*\.txt$)') {
+  if ($changed -match '^(backend/|pyproject\.toml$|requirements.*\.txt$|backend/requirements.*\.txt$)') {
     $runBackend = "1"
   } else {
     $runBackend = "0"

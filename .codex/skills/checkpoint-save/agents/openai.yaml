@@ -1,0 +1,7 @@
+interface:
+  display_name: 'Checkpoint Save'
+  short_description: 'Create fast checkpoint commits during development'
+  default_prompt: 'Use $checkpoint-save to run verify-fast and create a checkpoint commit/push during development.'
+
+policy:
+  allow_implicit_invocation: false

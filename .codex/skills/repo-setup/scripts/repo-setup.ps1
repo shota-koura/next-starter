@@ -153,17 +153,6 @@ if (Get-Command coderabbit -ErrorAction SilentlyContinue) {
   }
 }
 
-$codexHomeDir = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME ".codex" }
-$codexReviewerPath = Join-Path $codexHomeDir "agents/codex-reviewer.toml"
-if (Test-Path $codexReviewerPath) {
-  Write-Host "[OK] codex-reviewer agent found: $codexReviewerPath"
-} else {
-  Write-Host "[WARN] codex-reviewer agent not found. change-review / pr-flow require it."
-  Write-Host "[HINT] install codex-reviewer.toml into:"
-  Write-Host "  $codexReviewerPath"
-  Write-Host "[HINT] if your team manages shared agents outside this repo, copy or install codex-reviewer.toml there before using pr-flow."
-}
-
 if (Get-Command supabase -ErrorAction SilentlyContinue) {
   $supabaseVersion = & supabase --version | Select-Object -First 1
   Write-Host "[OK] supabase found: $supabaseVersion"
@@ -237,6 +226,37 @@ if (-not [string]::IsNullOrWhiteSpace($env:REPO_URL)) {
 $root = (git rev-parse --show-toplevel).Trim()
 Set-Location $root
 Write-Host "[INFO] repo root: $root"
+
+$codexHomeDir = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME ".codex" }
+$globalAgentDir = Join-Path $codexHomeDir "agents"
+$localAgentDir = Join-Path $root ".codex/agents"
+
+function Test-Agent {
+  param(
+    [string]$AgentName,
+    [string]$Purpose
+  )
+
+  $globalPath = Join-Path $globalAgentDir "$AgentName.toml"
+  $localPath = Join-Path $localAgentDir "$AgentName.toml"
+
+  if (Test-Path $globalPath) {
+    Write-Host "[OK] $AgentName agent found: $globalPath"
+  } elseif (Test-Path $localPath) {
+    Write-Host "[OK] $AgentName repo-local agent found: $localPath"
+    Write-Host "[HINT] if your Codex environment requires global agents, copy it to:"
+    Write-Host "  $globalPath"
+  } else {
+    Write-Host "[WARN] $AgentName agent not found. $Purpose"
+    Write-Host "[HINT] install $AgentName.toml into:"
+    Write-Host "  $globalPath"
+  }
+}
+
+Test-Agent -AgentName "codex-reviewer" -Purpose "change-review / pr-flow require it."
+Test-Agent -AgentName "planning-reviewer" -Purpose "planning skills use it for requirements / tasklist / implementation-plan review."
+Test-Agent -AgentName "code-mapper" -Purpose "autonomous-steering and planning skills use it for impact mapping."
+Test-Agent -AgentName "autonomous-orchestrator" -Purpose "autonomous-steering requires it."
 
 if ($skipFrontend -ne "1") {
   Write-Host "[STEP] Frontend: npm install"
