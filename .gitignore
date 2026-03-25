@@ -58,3 +58,10 @@ playwright-report/
 
 # context
 docs/context/
+
+# serena local state
+.serena/
+**/.serena/
+
+# Windows ADS artifacts
+*:Zone.Identifier

@@ -77,12 +77,13 @@ pwsh -File .codex/skills/coderabbit-pre-review/scripts/coderabbit-pre-review.ps1
 - ID: CR-1
 - ソース: CodeRabbit
 - 懸念レベル: P0|P1|P2
-- レビュータイトル:
-- レビュー内容:
-- 参照:
-- 解釈:
-- 対応方針: 対応推奨|条件付き対応|見送り可
+- 概要: {指摘事項の概要}
+- 詳細: {指摘の詳細。参照ファイルパスを含む}
+- 推奨方針: 対応推奨|条件付き対応|見送り可
+- 解説: {なぜ問題になりうるのか、2-3文の初心者向け説明}
 ```
+
+単体実行時は `CR-*` 形式の stable ID を使う。`pr-flow` 配下では親エージェントがこの中間形式を統合フォーマットへ変換するため、ユーザー向けの最終 ID は親エージェントが付与する。
 
 ## 運用ルール
 
@@ -91,10 +92,9 @@ pwsh -File .codex/skills/coderabbit-pre-review/scripts/coderabbit-pre-review.ps1
 - `P1/P2` は差分規模、期限、影響度で対応要否を判断する。
 - CodeRabbit CLI の結果は pre-review 用であり、PR 上の merge gate にはしない。
 - `pr-flow` で使う場合、`change-review` と両方完了する前に commit 可否判定へ進まない。
-- `pr-flow` 配下では、この skill の finding には `CR-*` の stable ID を付ける。
-- `pr-flow` 配下では、もう片方の review lane が未完了、失敗、または結果回収不能な場合でも、この lane 自身が返した確定済み finding を親エージェントが「片側結果」として提示してよい。
-- `pr-flow` 配下では、親エージェントは CodeRabbit CLI の raw 出力をそのまま繰り返さず、統合済み finding または片側結果だけを返す。
-- `pr-flow` 配下で片側結果に基づく修正が入った場合は、修正前差分を見た未完了 lane の結果を stale とみなし、親エージェントは両 lane の review を修正後差分で再実行する。
+- `pr-flow` 配下では、この skill は中間形式で結果を返し、ユーザー向けの ID 採番やセクション分けは親エージェントが統合時に行う。
+- `pr-flow` 配下では、親エージェントは CodeRabbit CLI の raw 出力をそのまま繰り返さず、両レーン完了後に統合フォーマットで提示する。
+- `pr-flow` 配下では、両レーン完了まで findings を提示しない。片側結果の先行提示は行わない。
 - finding がある場合、ユーザーの ID 指定前に一切修正しない。
 - 待機が長引く場合も、自動で打ち切らず、継続待機または停止の判断はユーザーに委ねる。
 
@@ -103,4 +103,4 @@ pwsh -File .codex/skills/coderabbit-pre-review/scripts/coderabbit-pre-review.ps1
 - CodeRabbit CLI の結果が `P0/P1/P2` 相当で整理されている。
 - 応答遅延があっても結果待ちを打ち切らず、未完了のまま commit 判定へ進んでいない。
 - commit 前に直すべきものと、見送るものが説明できる。
-- `pr-flow` 配下で片側結果として提示された finding も、最終統合時に同じ stable ID を維持できる。
+- `pr-flow` 配下では、中間形式で返した結果が親エージェントの統合フォーマットに正しく変換される。

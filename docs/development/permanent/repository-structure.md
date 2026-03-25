@@ -24,9 +24,13 @@
 │   ├── config.toml
 │   └── skills
 │       ├── api-add-design
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── api-modify-design
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── autonomous-steering
 │       │   ├── SKILL.md
 │       │   ├── agents
@@ -34,11 +38,17 @@
 │       │   └── references
 │       │       └── autonomy-policy.md
 │       ├── branch-create
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── bug-investigation
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── change-review
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── checkpoint-save
 │       │   ├── SKILL.md
 │       │   ├── agents
@@ -48,61 +58,103 @@
 │       │       └── checkpoint-save.sh
 │       ├── coderabbit-pre-review
 │       │   ├── SKILL.md
+│       │   ├── agents
+│       │   │   └── openai.yaml
 │       │   └── scripts
 │       │       ├── coderabbit-pre-review.ps1
 │       │       └── coderabbit-pre-review.sh
 │       ├── commit
 │       │   ├── SKILL.md
+│       │   ├── agents
+│       │   │   └── openai.yaml
 │       │   └── scripts
 │       │       ├── commit.ps1
 │       │       └── commit.sh
 │       ├── dedupe
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── document-update
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── implementation-plan-generator
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── llm-change-design
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── mcp-chrome-devtools-perf
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── mcp-playwright-debug
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── mcp-serena-refactor
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── pr-flow
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── pr-review-merge
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── precommit
 │       │   ├── SKILL.md
+│       │   ├── agents
+│       │   │   └── openai.yaml
 │       │   └── scripts
 │       │       ├── precommit.ps1
 │       │       └── precommit.sh
 │       ├── repo-setup
 │       │   ├── SKILL.md
+│       │   ├── agents
+│       │   │   └── openai.yaml
 │       │   └── scripts
 │       │       ├── repo-setup.ps1
 │       │       └── repo-setup.sh
 │       ├── requirements-quality-gate
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── setup-tailwind-frontend
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── skills-retro
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── supabase-cli-workflow
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── tasklist-generator
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── vercel-cli-workflow
-│       │   └── SKILL.md
+│       │   ├── SKILL.md
+│       │   └── agents
+│       │       └── openai.yaml
 │       ├── verify-fast
 │       │   ├── SKILL.md
+│       │   ├── agents
+│       │   │   └── openai.yaml
 │       │   └── scripts
 │       │       ├── verify-fast.ps1
 │       │       └── verify-fast.sh
 │       └── verify-full
 │           ├── SKILL.md
+│           ├── agents
+│           │   └── openai.yaml
 │           └── scripts
 │               ├── verify-full.ps1
 │               └── verify-full.sh
@@ -134,10 +186,6 @@
 │   └── pre-commit
 ├── .prettierignore
 ├── .prettierrc
-├── .serena
-│   ├── cache
-│   │   └── typescript
-│   └── memories
 ├── .specstory
 │   ├── .project.json
 │   └── history
@@ -239,5 +287,5 @@
 │   └── tree.sh
 └── tsconfig.json
 
-82 directories, 152 files
+104 directories, 178 files
 ```
