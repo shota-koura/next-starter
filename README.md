@@ -143,8 +143,10 @@ next-starter/
   - local review に finding が出た場合は stable ID 付きで停止し、選ばれた ID だけを修正する
 - `$coderabbit-pre-review`
   - CodeRabbit CLI で `precommit` 後・`commit` 前のローカル差分を事前レビューし、P0/P1/P2 相当で整理する
+  - 単体実行時は `CR-*` の stable ID を付けて提示する
 - `$change-review`
   - ローカル差分を `codex-reviewer` sub-agent で事前レビューし、親エージェントが CodeRabbit と同じ形式で結果を整理する
+  - 単体実行時は `CX-*` の stable ID を付けて提示する
 - `$pr-review-merge`
   - push 後の PR 作成/表示、CI 監視、マージまでを定型化
 
@@ -459,7 +461,10 @@ GitHub のテンプレ機能は「リポジトリ内のファイル」はコピ�
   - 既定では `change-review` で `codex-reviewer` sub-agent を使ってローカル差分を review する
   - 親エージェントが `codex-reviewer` の結果を回収し、CodeRabbit と同じ形式に揃えて提示する
   - `coderabbit-pre-review` と `change-review` は並列で走らせる想定
-  - local review に finding が出た場合は stable ID 付きで提示し、選ばれた ID だけを修正する
+  - `coderabbit-pre-review` 単体では `CR-*`、`change-review` 単体では `CX-*` の stable ID を使う
+  - `pr-flow` では親エージェントが統合後の stable ID を付けて提示し、選ばれた ID だけを修正する
+  - `pr-flow` では両 review lane が完了するまで findings を提示しない
+  - 片側結果だけを先に提示せず、どちらかが失敗・未完了なら commit に進まず停止する
   - そのため、標準の `pr-flow` は `codex-reviewer` を使えるセッションを前提にする
   - GitHub 上の `@codex review` は manual fallback としてのみ使う
 
@@ -526,14 +531,17 @@ $CODEX_HOME/agents/
 - `$autonomous-steering` は `autonomous-orchestrator` を前提にします。
 - 導入確認は `$repo-setup` でも行えます。
 
-### 4) ローカル pre-review を試す（最短の確認手順）
+### 4) ローカル pre-review を単体で試す（最短の確認手順）
 
 1. ブランチを切って変更を入れる
 2. `precommit` を通す
 3. `coderabbit-pre-review` と `change-review` を並列で実行する
-4. findings があれば stable ID 一覧を確認し、対応する ID を選ぶ
-5. 選んだ ID だけを修正する
-6. commit 後に `pr-flow` で PR へ進む
+4. findings があれば stable ID 一覧を確認する
+5. 単体実行なら `CR-*` / `CX-*`、`pr-flow` なら親エージェントが付けた stable ID を選ぶ
+6. 選んだ ID だけを修正する
+7. 必要なら `commit` で commit/push する
+
+`pr-flow` を end-to-end 入口として使う場合は、上の単体手順を別途実行せず、最初から `pr-flow` を起動します。`pr-flow` の中で `precommit`、local review、`commit`、`pr-review-merge` まで順に実行されます。
 
 ### 5) CI 失敗を Codex に直させる（手動トリガー）
 

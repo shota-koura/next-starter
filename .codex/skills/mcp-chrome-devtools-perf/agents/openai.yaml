@@ -1,0 +1,8 @@
+policy:
+  allow_implicit_invocation: true
+
+dependencies:
+  tools:
+    - type: mcp
+      value: chrome-devtools
+      description: Chrome DevTools MCP server for performance tracing and analysis

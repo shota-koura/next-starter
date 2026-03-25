@@ -26,9 +26,7 @@ description: 作業完了時に、document-update、precommit、coderabbit-pre-r
 - ローカル review 段階では `coderabbit-pre-review` と `change-review` を並列で扱う。
 - `change-review` は `codex-reviewer` sub-agent を必須とするため、この標準順序は `codex-reviewer` を使えるセッションを前提にする。
 - findings の最終確定は `coderabbit-pre-review` と `change-review` の両方が完了してから行う。
-- 片方の lane が先に完了し、もう片方が未完了、失敗、または結果回収不能な場合は、完了済み lane の結果を「片側結果」と明示して提示してよい。
-- 片側結果と最終確定結果の両方で stable ID を使い、ID は再統合後も変えない。
-- 片方だけの結果で commit 可否を判定しない。
+- 両レーンが完了するまで findings を提示しない。片側結果の先行提示は行わない。
 - 片方が失敗、未完了、または結果回収不能な場合は commit へ進まず停止する。
 - local review の応答が遅くても完了を待ち、タイムアウトや遅延を理由に親判断でレビュー対象を狭めない。
 - local review で finding が出た場合は commit へ進まず、ID 付き一覧を提示してユーザー指示待ちで停止する。
@@ -68,14 +66,11 @@ $change-review
 
 ### 4) 結果を統合して停止判定
 
-- 親エージェントは CodeRabbit と `codex-reviewer` の結果を同じ形式へ正規化し、stable ID で統合して提示する。
+- `coderabbit-pre-review` と `change-review` の**両方が完了するまで** findings を提示しない。片側結果の先行提示は行わない。
+- 両レーン完了後、親エージェントが結果を P0/P1/P2 でセクション分けし、各 finding に stable ID を付けて提示する。
+- stable ID は一度提示したら再 review 後も維持し、同じ finding が残る限り変えない。新規 finding だけを末尾に追加する。
+- ID にレビュー lane 由来のプレフィックスを持たせてもよいが、ユーザーとのやり取りでは stable ID を一次識別子として扱う。
 - sub-agent 通知や CLI 生出力が先に表示されていても、親エージェントの findings 提示は最終整理を 1 回だけ返す。
-- すでに見えている raw finding を、そのまま重複して再掲しない。必要なら「片側結果」または「最終確定結果」として差分だけを要約する。
-- `coderabbit-pre-review` と `change-review` の両方が完了したら findings を最終確定して提示する。
-- 片方の lane だけが完了している場合は、取得済みの finding を「片側結果」として提示してよい。
-- 片側結果は action 可能な暫定結果として扱ってよいが、commit 判定は保留する。
-- 片側結果に基づいて修正を入れた時点で、未完了 lane の進行中結果は stale 候補として無効化し、修正後に両 lane を新しい差分で再実行する。
-- 片方だけの結果で commit 可否を判定しない。
 - 片方が失敗、未完了、または結果回収不能な場合は、その理由、推奨対応方針、再開条件を提示したうえでこの段階で停止する。
 - finding が 1 件でもあれば commit 前に停止し、ユーザーへ「対応する ID」を確認する。
 - ユーザー指示があるまで修正しない。
@@ -83,25 +78,40 @@ $change-review
 - local review の応答が遅い場合は待機を継続しつつ「どの lane が待機中か」を明示して報告する。
 - タイムアウトや遅延を理由に親判断でレビュー対象を狭めない。
 - 待機が長引く場合も commit へは進まず、「待機継続」または「ここで停止」をユーザー判断に委ねる。
-- 片側結果だけがある場合は、その stable ID をユーザーが選んで先に修正してよい。
-- その場合、未完了 lane が修正前の差分を見て返した結果は採用せず、修正後に `coderabbit-pre-review` と `change-review` の両方を再実行してから findings を再統合する。
-- ただし、両 lane が完了するまで commit へは進まない。
+
+#### 統合フォーマット
+
+findings は以下の形式で提示する。P0/P1/P2 のセクションに分け、該当なしのセクションは省略する。各 finding には stable ID を付け、再 review 後も同じ指摘である限り同じ ID を維持する。
 
 ```text
-- ID: CR-1 | CX-1
+## P0
+
+### PRF-1. {概要}
 - ソース: CodeRabbit|codex-reviewer
-- 懸念レベル: P0|P1|P2
-- レビュータイトル:
-- レビュー内容:
-- 参照:
-- 解釈:
-- 対応方針: 対応推奨|条件付き対応|見送り可
+- 詳細: {指摘の詳細。参照ファイルパスを含む}
+- 推奨方針: 対応推奨
+- 解説: {なぜ問題になりうるのか、2-3文の初心者向け説明。対応要否の判断材料}
+
+## P1
+
+### PRF-2. {概要}
+- ソース: CodeRabbit|codex-reviewer
+- 詳細: {指摘の詳細。参照ファイルパスを含む}
+- 推奨方針: 対応推奨|条件付き対応|見送り可
+- 解説: {なぜ問題になりうるのか、2-3文の初心者向け説明。対応要否の判断材料}
+
+## P2
+
+### PRF-3. {概要}
+- ソース: codex-reviewer
+- 詳細: {指摘の詳細。参照ファイルパスを含む}
+- 推奨方針: 条件付き対応|見送り可
+- 解説: {なぜ問題になりうるのか、2-3文の初心者向け説明。対応要否の判断材料}
 ```
 
 ### 5) 指示された ID だけ修正して review をやり直す
 
-- ユーザーが stable ID を返したら、その ID だけを最小差分で修正する。
-- 片側結果に対する修正だった場合は、未完了 lane の旧結果を破棄し、両 lane を修正後差分で再実行する。
+- ユーザーが ID を返したら、その ID だけを最小差分で修正する。
 - 修正後は `$precommit` と local review 段階を再実行する。
 - finding が無くなったら commit に進む。
 
@@ -137,14 +147,12 @@ $pr-review-merge
 
 - この skill 自体は orchestrator だが、local review 段階では `change-review` 側の方針に従って `codex-reviewer` を使う。
 - CodeRabbit CLI は sub-agent 化せず、CLI 実行のまま parallel lane として扱う。
-- local review は両 lane の完了まで待ち、結果統合前に片方だけで先へ進まない。
+- local review は両 lane の完了まで待ち、両方完了するまで findings を提示しない。
 - 遅延時も待機を継続し、親判断でレビュー対象やレビュー観点を削らない。
-- 取得済みの finding は stable ID 付きの片側結果として提示してよいが、両 lane 完了前に commit 可否は確定しない。
-- 片側結果に基づく途中修正が入った場合は、未完了 lane の進行中結果を stale とみなし、両 lane を修正後差分で再実行する。
 
 ## 完了条件
 
 - 実行すべき skill の順序が明確である。
 - PR 提案からマージとローカル `main` 同期までのどこで止まるか説明できる。
 - local review に finding があるとき、ユーザー指示前に commit へ進まない。
-- 片側結果から最終確定結果へ移っても finding の stable ID が維持される。
+- findings の ID は stable ID であり、同じ finding が残る限り再実行後も維持される。

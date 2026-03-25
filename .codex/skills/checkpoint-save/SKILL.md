@@ -1,7 +1,8 @@
 ---
 name: checkpoint-save
 description: >-
-  開発途中の論理的な区切りで、verify-fast を実行して checkpoint commit/push を作る。
+  1つの論理単位（関数・コンポーネント・ファイル群）の実装が完了したとき、次の作業単位に移る前、
+  または差分が肥大化する前に、能動的に実行する。verify-fast を通して checkpoint commit/push を作る。
   軽い save point 用であり、CodeRabbit / codex-reviewer / PR 作成 / merge は行わない。
   作業完了時には使わず、`$pr-flow` を使う。
 ---

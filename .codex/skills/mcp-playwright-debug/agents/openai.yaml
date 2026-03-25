@@ -1,0 +1,8 @@
+policy:
+  allow_implicit_invocation: true
+
+dependencies:
+  tools:
+    - type: mcp
+      value: playwright
+      description: Playwright MCP server for browser automation, screenshots, and console/network log collection

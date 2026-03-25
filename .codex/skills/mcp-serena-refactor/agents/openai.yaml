@@ -1,0 +1,8 @@
+policy:
+  allow_implicit_invocation: true
+
+dependencies:
+  tools:
+    - type: mcp
+      value: serena
+      description: Serena MCP server for symbol-aware refactoring and reference tracking

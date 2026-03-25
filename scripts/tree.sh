@@ -7,8 +7,8 @@ DEPTH="${1:-$DEFAULT_DEPTH}"
 
 mkdir -p "$(dirname "$OUT")"
 
-# Common excludes for repo tree output (generated/large dirs)
-EXCLUDES='.git|node_modules|.next|dist|build|.venv|__pycache__|.pytest_cache|.ruff_cache|coverage|.turbo|.swc|.mypy_cache|.idea'
+# Common excludes for repo tree output (generated/large dirs and local-only artifacts)
+EXCLUDES='.git|node_modules|.next|dist|build|.venv|__pycache__|.pytest_cache|.ruff_cache|coverage|.turbo|.swc|.mypy_cache|.idea|.claude|.serena|*:Zone.Identifier'
 
 {
   echo "# Repository structure"
