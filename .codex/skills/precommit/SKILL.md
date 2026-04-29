@@ -5,24 +5,22 @@ description: commit 前の整形・整合チェックとセルフレビュー、
 
 ## 目的
 
-- commit 前に、整形・静的チェックを一連で実施して差分品質を上げる。
-- `docs/development/permanent/repository-structure.md` を最新化して、リポジトリ構造ドキュメントの陳腐化を防ぐ（毎回実行）。
+- commit 前に、Python 3.12 構成の整形・静的チェック・テストを実施する。
+- `docs/development/permanent/repository-structure.md` を最新化して、リポジトリ構造ドキュメントの陳腐化を防ぐ。
 
 ## いつ使うか
 
-- commit する直前（原則）。
+- commit する直前。
 - docs / skills など、差分が Markdown 中心でも commit する前。
-- PR 作成前（commit を積む運用でも、最低 1 回は実施する）。
+- PR 作成前。
 
 ## 前提
 
-- 作業ブランチにいる（`main` / `master` に直接 commit しない）。
-- Node 依存が揃っている（`npm install` 済み）。
+- 作業ブランチにいる。`main` / `master` に直接 commit しない。
+- Python 3.12.x を使う。
 - `bash scripts/tree.sh` が利用する `tree` コマンドが環境に存在する。
 
-## 1コマンド実行（推奨）
-
-次を実行する。
+## 1コマンド実行
 
 ```bash
 bash .codex/skills/precommit/scripts/precommit.sh
@@ -34,8 +32,6 @@ Windows ネイティブ（PowerShell）の場合:
 pwsh -File .codex/skills/precommit/scripts/precommit.ps1
 ```
 
-- スクリプトが本ファイルの手順をまとめて実行する。
-
 ## 手順
 
 ### 0) 状態確認
@@ -45,38 +41,24 @@ git status -sb
 git diff --name-only
 ```
 
-- 想定外のファイルが混ざっていないか確認する。
-- 秘密情報（トークン、鍵、内部URL 等）が差分に入っていないことを確認する。
+想定外のファイルや秘密情報が混ざっていないことを確認する。
 
-### 1) リポジトリ標準の precommit 実行
+### 1) Python 検証
 
 ```bash
-npm run precommit
+bash .codex/skills/verify-full/scripts/verify-full.sh
 ```
 
-- 失敗した場合は、指摘内容を解消して再実行する。
-- ここで自動整形が走る場合があるため、実行後に差分を再確認する。
-
-### 2) リポジトリ構造ドキュメントの更新（毎回）
-
-`docs/development/permanent/repository-structure.md` は生成物として扱い、手動編集しない。
+### 2) リポジトリ構造ドキュメントの更新
 
 ```bash
 bash scripts/tree.sh
 ```
 
-- 深さを変える場合:
+### 3) tree 更新後の再検証
 
 ```bash
-bash scripts/tree.sh 5
-```
-
-### 3) tree 更新後の整形（推奨）
-
-tree 更新で Markdown が更新された場合に備えて再実行する。
-
-```bash
-npm run precommit
+bash .codex/skills/verify-full/scripts/verify-full.sh
 ```
 
 ### 4) 差分の最終確認
@@ -86,26 +68,8 @@ git status -sb
 git diff --stat
 ```
 
-- 意図した差分のみになっていることを確認する。
-
-### 5) commit 実行
-
-commit は `$commit` を使う（`verify-full` を必須実行したうえで add/commit/push を行う）。
-
-- 事前に `COMMIT_MSG` を設定する（必須）:
-
-```bash
-export COMMIT_MSG='feat(frontend): タスク作成フォームを追加'
-```
-
-- 実行:
-
-```text
-$commit
-```
-
 ## 完了条件
 
-- `npm run precommit` が成功している。
+- `verify-full` が成功している。
 - `bash scripts/tree.sh` により `docs/development/permanent/repository-structure.md` が最新化されている。
-- 差分が意図通りで、次に `$commit` へ進める状態になっている。
+- 差分が意図通りで、次に commit へ進める状態になっている。

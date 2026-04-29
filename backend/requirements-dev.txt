@@ -1,5 +1,0 @@
--r requirements.txt
-ruff
-pyright
-pytest
-httpx

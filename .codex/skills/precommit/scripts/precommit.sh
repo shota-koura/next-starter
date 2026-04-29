@@ -4,14 +4,11 @@ set -euo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
 
-git status -sb
-git diff --name-only
-
-npm run precommit
+bash .codex/skills/verify-full/scripts/verify-full.sh
 
 bash scripts/tree.sh
 
-npm run precommit
+bash .codex/skills/verify-full/scripts/verify-full.sh
 
 git status -sb
 git diff --stat
