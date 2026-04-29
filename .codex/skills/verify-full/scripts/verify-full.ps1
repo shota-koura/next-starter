@@ -1,73 +1,62 @@
 $ErrorActionPreference = "Stop"
 
+function Invoke-Native {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string]$Command,
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]]$Arguments
+  )
+
+  & $Command @Arguments
+  if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+  }
+}
+
 $root = (git rev-parse --show-toplevel).Trim()
 Set-Location $root
-
-$runBackend = if ($env:RUN_BACKEND) { $env:RUN_BACKEND } else { "auto" }
-$runE2E = if ($env:RUN_E2E) { $env:RUN_E2E } else { "0" }
 
 & git status -sb
 & git diff --name-only
 
-& npm run fix
-& npm run format:check
-& npm run lint
-& npm run test:ci
+if (-not $env:VIRTUAL_ENV) {
+  if (-not (Test-Path ".venv")) {
+    $venvCreated = $false
 
-if ($runBackend -eq "auto") {
-  $changed = & git diff --name-only
-  if ($changed -match '^(backend/|pyproject\.toml$|requirements.*\.txt$)') {
-    $runBackend = "1"
-  } else {
-    $runBackend = "0"
-  }
-}
-
-if ($runBackend -eq "1") {
-  $backendDir = Join-Path $root "backend"
-  if ((Test-Path (Join-Path $backendDir "Makefile")) -and (Get-Command make -ErrorAction SilentlyContinue)) {
-    Push-Location $backendDir
-    & make ruff-fix
-    & make ruff-format
-    & make pyright
-    & make pytest
-    Pop-Location
-  } else {
-    Push-Location $backendDir
-
-    if (-not (Test-Path ".venv")) {
-      & python3 -m venv .venv
+    if (Get-Command py -ErrorAction SilentlyContinue) {
+      & py -3.12 -m venv .venv
+      $venvCreated = ($LASTEXITCODE -eq 0)
     }
 
-    $activated = $false
-    if (-not $env:VIRTUAL_ENV) {
-      if ($IsWindows) {
-        . .venv\Scripts\Activate.ps1
+    if (-not $venvCreated) {
+      if (Get-Command uv -ErrorAction SilentlyContinue) {
+        Invoke-Native "uv" "venv" ".venv" "--python" "3.12"
+        $venvCreated = $true
       } else {
-        . .venv/bin/activate
+        throw "Python 3.12 venv creation failed and uv is unavailable."
       }
-      $activated = $true
     }
 
-    & python -m pip install -U pip
-    & pip install -r requirements-dev.txt
-    & ruff check --fix .
-    & ruff format .
-    & pyright
-    & python -m pytest
-
-    if ($activated -and (Get-Command deactivate -ErrorAction SilentlyContinue)) {
-      deactivate
+    if (-not $venvCreated) {
+      throw "Python 3.12 venv creation failed."
     }
-
-    Pop-Location
   }
-} else {
-  Write-Host "[SKIP] Backend checks (RUN_BACKEND=$runBackend)"
+
+  . .venv\Scripts\Activate.ps1
 }
 
-if ($runE2E -eq "1") {
-  & npm run e2e
+if (Get-Command uv -ErrorAction SilentlyContinue) {
+  $pythonPath = (Get-Command python).Source
+  Invoke-Native "uv" "pip" "install" "--python" $pythonPath "-r" "requirements-dev.txt"
 } else {
-  Write-Host "[SKIP] E2E (set RUN_E2E=1 to run)"
+  Invoke-Native "python" "-m" "pip" "install" "-U" "pip"
+  Invoke-Native "python" "-m" "pip" "install" "-r" "requirements-dev.txt"
 }
+
+Invoke-Native "ruff" "check" "."
+Invoke-Native "ruff" "format" "--check" "."
+Invoke-Native "black" "--check" "."
+Invoke-Native "mypy" "voice_typer" "tests"
+Invoke-Native "pytest"
+Invoke-Native "python" "-m" "voice_typer"

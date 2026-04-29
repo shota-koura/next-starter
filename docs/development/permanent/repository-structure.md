@@ -164,66 +164,11 @@
 │   └── workflows
 │       └── ci.yml
 ├── .gitignore
-├── .husky
-│   ├── _
-│   │   ├── .gitignore
-│   │   ├── applypatch-msg
-│   │   ├── commit-msg
-│   │   ├── h
-│   │   ├── husky.sh
-│   │   ├── post-applypatch
-│   │   ├── post-checkout
-│   │   ├── post-commit
-│   │   ├── post-merge
-│   │   ├── post-rewrite
-│   │   ├── pre-applypatch
-│   │   ├── pre-auto-gc
-│   │   ├── pre-commit
-│   │   ├── pre-merge-commit
-│   │   ├── pre-push
-│   │   ├── pre-rebase
-│   │   └── prepare-commit-msg
-│   └── pre-commit
-├── .prettierignore
-├── .prettierrc
-├── .specstory
-│   ├── .project.json
-│   └── history
-│       ├── 2026-01-04_07-12Z-bashスクリプトの和訳.md
-│       ├── 2026-01-17_06-14Z-pr-フロー-skill-の-p0-処理設計.md
-│       ├── 2026-01-24_03-05Z-スクリプト出力先ディレクトリ変更.md
-│       └── 2026-02-01_04-44Z-@agents-md-ディレクトリ命名規則.md
+├── .python-version
 ├── .vscode
 │   └── settings.json
 ├── AGENTS.md
 ├── README.md
-├── __tests__
-│   └── button.test.tsx
-├── app
-│   ├── favicon.ico
-│   ├── globals.css
-│   ├── layout.tsx
-│   └── page.tsx
-├── backend
-│   ├── Makefile
-│   ├── __init__.py
-│   ├── app.py
-│   ├── pyproject.toml
-│   ├── pyrightconfig.json
-│   ├── requirements-dev.txt
-│   ├── requirements.txt
-│   └── tests
-│       └── test_smoke.py
-├── components
-│   └── ui
-│       ├── button.tsx
-│       ├── card.tsx
-│       ├── dialog.tsx
-│       ├── input.tsx
-│       ├── label.tsx
-│       ├── sonner.tsx
-│       └── textarea.tsx
-├── components.json
 ├── docs
 │   ├── business
 │   │   ├── .gitkeep
@@ -249,7 +194,12 @@
 │   │       └── .gitkeep
 │   └── development
 │       ├── .steering
-│       │   └── .gitkeep
+│       │   ├── .gitkeep
+│       │   ├── 1.0-20260429-initial-project-setup
+│       │   │   ├── implementation-plan.md
+│       │   │   ├── requirements.md
+│       │   │   └── tasklist.md
+│       │   └── steering.md
 │       ├── context
 │       │   └── test_context_20260124_120747.md
 │       ├── permanent
@@ -261,31 +211,20 @@
 │       │   └── repository-structure.md
 │       └── recomend-skills
 │           └── .gitkeep
-├── e2e
-│   └── health.spec.ts
-├── eslint.config.mjs
-├── jest.config.js
-├── jest.setup.ts
-├── lib
-│   └── utils.ts
-├── next-env.d.ts
-├── next.config.ts
-├── package-lock.json
-├── package.json
-├── playwright.config.ts
-├── postcss.config.mjs
-├── public
-│   ├── file.svg
-│   ├── globe.svg
-│   ├── next.svg
-│   ├── vercel.svg
-│   └── window.svg
+├── pyproject.toml
+├── requirements-dev.txt
+├── requirements.txt
 ├── scripts
 │   ├── codex-setup.sh
 │   ├── context.sh
 │   ├── pr.sh
 │   └── tree.sh
-└── tsconfig.json
+├── tests
+│   └── test_smoke.py
+└── voice_typer
+    ├── __init__.py
+    ├── __main__.py
+    └── main.py
 
-104 directories, 178 files
+95 directories, 127 files
 ```
