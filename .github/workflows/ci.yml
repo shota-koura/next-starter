@@ -9,7 +9,7 @@ permissions:
   contents: read
 
 jobs:
-  verify:
+  test:
     name: Verify (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
@@ -47,3 +47,16 @@ jobs:
 
       - name: Import smoke
         run: python -m voice_typer
+
+  verify:
+    name: verify
+    runs-on: ubuntu-latest
+    needs: test
+    if: always()
+    steps:
+      - name: Check matrix result
+        run: |
+          if [ "${{ needs.test.result }}" != "success" ]; then
+            echo "matrix verification failed: ${{ needs.test.result }}"
+            exit 1
+          fi
